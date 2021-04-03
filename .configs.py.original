@@ -1,0 +1,2 @@
+PYTHON = '/Users/leecarlaw/anaconda3/envs/gefs/bin/python'
+datadir = '/Users/leecarlaw/scripts/meso/IO/data'

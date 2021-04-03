@@ -1,0 +1,12 @@
+name: meso
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - numba
+  - pygrib
+  - numpy
+  - scipy
+  - matplotlib
+prefix: /Users/leecarlaw/anaconda3/envs/meso

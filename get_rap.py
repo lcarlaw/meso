@@ -13,10 +13,6 @@ from configs import WGRIB2, WGET
 from utils.timing import timeit
 
 script_path = os.path.dirname(os.path.realpath(__file__))
-#radar_metadata = pd.read_pickle('%s/IO/databases/wsr88d.pkl' % (script_path))
-
-#WGRIB2 = '/usr/local/bin/wgrib2'
-#WGET = '/usr/local/bin/wget'
 NOMADS = 'https://nomads.ncep.noaa.gov/pub/data/nccf/com/hrrr/prod/hrrr'
 FTPPRD = 'https://ftpprd.ncep.noaa.gov/data/nccf/com/hrrr/prod/hrrr' # Haven't added this yet
 GOOGLE = 'https://storage.googleapis.com/high-resolution-rapid-refresh'
@@ -77,7 +73,7 @@ def execute_download(full_name, url):
     else:
         arg1 = script_path + '/IO/get_inv.pl ' + url + '.idx | egrep ' + "'" + vars +  \
               "'" + ' | ' + script_path + '/IO/get_grib.pl ' + url + ' ' + full_name
-    
+
     if not os.path.exists(full_name + '.reduced'):
         execute(arg1)
     else:

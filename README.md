@@ -17,7 +17,7 @@ The setup here proceeds using Anaconda, as well as assuming a completely vanilla
 Run the following to create an Anaconda environment with the required libraries:
 
 ```
-conda env create --name envname --file environment.yml
+conda env create -f environment.yml
 pip install geojsoncontour
 ```
 

@@ -105,8 +105,8 @@ def read_data(filename):
             else:
                 pres[lev] = np.full_like(heights[0].values, heights[lev-delta].level)
                 tmpc[lev] = temperatures[lev-delta].values - 273.15
-                wdir[lev], wspd[lev] = winds.wind_vecs(uwind[lev-delta].values,
-                                                       vwind[lev-delta].values)
+                #wdir[lev], wspd[lev] = winds.wind_vecs(uwind[lev-delta].values,
+                #                                       vwind[lev-delta].values)
                 hght[lev] = heights[lev-delta].values
                 dwpc[lev] = thermo.dewpoint_from_rh(temperatures[lev-delta].values,
                                                     rh[lev-delta].values/100)

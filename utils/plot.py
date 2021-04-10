@@ -170,7 +170,7 @@ def write_placefile(arr, plotinfo, realtime=False):
         elif plot_type == 'contourf':
             out = contourf(lon, lat, arr[parm], time_str, **meta[parm])
         elif plot_type == 'barb':
-            out = barbs(lon, lat, arr['shear'], parm, time_str, **meta[parm])
+            out = barbs(lon, lat, arr['vectors'], parm, time_str, **meta[parm])
         else:
             raise ValueError("%s is an invalid plot_type entry" % (plot_type))
 

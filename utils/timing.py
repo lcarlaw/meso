@@ -1,14 +1,13 @@
 from functools import wraps
 from time import time
+import logging as log
 
 def timeit(f):
     @wraps(f)
-    def wrap(*args, **kw):
+    def wrap(*args, **kwargs):
         ts = time()
-        result = f(*args, **kw)
+        result = f(*args, **kwargs)
         te = time()
-        #print('Function: %s with args:[%s, %s] took: %2.4f sec' % \
-        #      (f.__name__, args, kw, te-ts))
-        print('Function: %s took: %2.4f sec' % (f.__name__, te-ts))
+        log.info('Function: %s took: %2.4f sec' % (f.__name__, te-ts))
         return result
     return wrap

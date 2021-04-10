@@ -9,4 +9,8 @@ dependencies:
   - numpy
   - scipy
   - matplotlib
+  - schedule
+  - pip
+  - pip:
+      - geojsoncontour
 prefix: /Users/leecarlaw/anaconda3/envs/meso

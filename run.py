@@ -1,148 +1,66 @@
-import os, sys
-import argparse
-import numpy as np
-from glob import glob
-from datetime import datetime, timedelta
-from time import time
-import re
+"""This controls the realtime execution of the mesoanalysis scripts.
 
-import sharptab.calcs as calcs
-import sharptab.interp as interp
-import sharptab.winds as winds
-import utils.plot_hodos as plot_hodos
-import utils.hodographs as hodographs
-import utils.plot as plot
+This replaces the need to specify file and system PATHS via crontab, and instead bundles
+everything within this module's directory.
 
-import IO.read as read
-from configs import PYTHON, plotinfo
+Currently electing to utilize the HRRR for realtime analysis for a few reasons:
+    - It's available consistently around :53-54 for all 24 cycles/day as opposed to :30
+      for the RAP on its 12z and 00z cycles
+    - Can quickly be "upscaled" to the same 13-km grid spacing as the RAP using WGRIB2
+      to ease computations
+    - The Google Cloud archive for the HRRR is more extensive as it goes back to 2014.
+      The RAP currently only goes back to 2021-02-22
+    - The HRRR dataset on the Google Cloud is very near real time as opposed to the RAP,
+      which seems to be delayed by ~4 hours. This is (potentially) a benefit if both the
+      NOMADS and FTPPRD servers are down, although I'm not sure if that also means the
+      upload feed to Google will also suffer...
+"""
 
-from utils.timing import timeit
+import schedule
+import time
+import os
+import logging
+
 from utils.cmd import execute
+from configs import PYTHON
 
 script_path = os.path.dirname(os.path.realpath(__file__))
+logging.basicConfig(filename='%s/logs/master.log' % (script_path),
+                    format='%(levelname)s %(asctime)s :: %(message)s',
+                    datefmt="%Y-%m-%d %H:%M:%S")
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
-def create_hodograph(data, point, storm_motion='right-mover', storm_relative=False):
-    idx = interp.nearest_idx(point, data['lons'], data['lats'])
-    u, v = winds.vec2comp(data['wdir'][:,idx[0][0], idx[0][1]],
-                          data['wspd'][:,idx[0][0], idx[0][1]])
-    hodo_data = {}
-    heights = data['hght'][:,idx[0][0], idx[0][1]] / 1000.
-    mask = np.where(heights < 12)
-    hodo_data['hght'] = heights[mask]
-    hodo_data['uwnd'] = u[mask]
-    hodo_data['vwnd'] = v[mask]
-    hodo_data['valid_time'] = data['valid_time']
-    hodo_data['cycle_time'] = data['cycle_time']
-    hodo_data['fhr'] = data['fhr']
-    hodo_data['lon'], hodo_data['lat'] = point[0][0], point[0][1]
-
-    params = hodographs.compute_parameters(hodo_data, storm_motion)
-    plot_hodos.plot_hodograph(hodo_data, params, storm_relative=storm_relative)
-
-@timeit
-def create_placefiles(data, realtime=False):
-    prof_data = {'pres':data['pres'], 'tmpc':data['tmpc'],
-                 'dwpc':data['dwpc'], 'hght':data['hght'],
-                 'wdir':data['wdir'], 'wspd':data['wspd']}
-    arrs = calcs.sharppy_calcs(**prof_data)
-    for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
-        arrs[item] = data[item]
-    plot.write_placefile(arrs, plotinfo, realtime=realtime)
-
-def find_nearest(dt, datadir):
-    """Find the nearest available RAP forecast to the current time or user-requested time
-
-    Parameters:
-    -----------
-    dt : datetime
-        The current time or user-requested time
-
+def download_data():
+    """Pass arguments to the get_data.py script to download data in realtime from either
+    the NOMADS, FTPPRD, or GOOGLE servers
     """
-    regex_str = 'f\d{2}.grib2.reduced'
+    log.info("Starting download function")
+    loop_is_done = True
 
-    deltas = {}
-    dirs = glob(datadir + '/*')
-    min_delta = 99999999
-    for dirname in dirs:
-        files = glob(dirname + '/**/*.reduced', recursive=True)
+    start = time.time()
+    delta = time.time() - start
+    while loop_is_done and delta < 1800:
+        arg = "%s %s/get_data.py -rt -m HRRR" % (PYTHON, script_path)
+        execute(arg)
 
-        for f in files:
-            shortname = f.lstrip(datadir)
-            cycle = datetime.strptime(shortname[0:13], '%Y-%m-%d/%H')
-            fhr = int(re.findall(regex_str, shortname)[0][1:3])
-            valid_time = cycle + timedelta(hours=fhr)
-
-            # Apply a penalty to older model cycles valid at the same time
-            increment = (dt.hour - cycle.hour)
-            delta = np.fabs((valid_time - dt).total_seconds()) + increment
-            deltas[delta] = f
-            if np.fabs(delta) < min_delta: min_delta = delta
-    return deltas[min_delta]
-
-if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
-    #ap.add_argument('radar', help='Radar site ID to localize to')
-    ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
-                    help='Realtime mode. Script will look for the most recent model run.')
-    ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
-                    multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
-                    "-e" flag. No -t flag is taken.')
-    ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
-    ap.add_argument('-t', '--time-str', dest='time_str', help='Valid time for archived   \
-                    model runs. Script will default to 1-hr forecasts. YYYY-MM-DD/HH')
-    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store model\
-                    data. Default will be set to the IO/data directory.')
-    ap.add_argument('-meso', dest='meso', action='store_true',
-                    help='Flag to output mesoanalysis placefiles for GR2/Analyst.')
-    ap.add_argument('-hodo', '--hodograph', dest='hodo',
-                    help='Hodograph plot at a point ex: 35.03/-101.23')
-    ap.add_argument('-sr', '--storm-relative', dest='storm_relative', action='store_true',
-                    help='Flag to create a Storm Relative hodograph')
-    ap.add_argument('-m', '--storm-motion', dest='storm_motion',
-                    help='Storm motion vector. It takes one of two forms. The first is   \
-                          either "BRM" for the Bunkers right mover vector, or "BLM" for  \
-                          the Bunkers left mover vector. The second is the form DDD/SS,  \
-                          where DDD is the direction the storm is coming from, and SS is \
-                          the speed in knots (e.g. 240/25).', default='right-mover')
-    args = ap.parse_args()
-
-    timestr_fmt = '%Y-%m-%d/%H'
-    #args.radar = args.radar.upper()
-    if args.realtime:
-        dt = datetime.utcnow()
-        time_flag = "-rt"
-    else:
-        if args.time_str is not None:
-            dt = datetime.strptime(args.time_str, timestr_fmt)
-            time_flag = "-t %s" % ((dt-timedelta(hours=1)).strftime(timestr_fmt))
-        elif args.start_time is not None and args.end_time is not None:
-            dt_start = datetime.strptime(args.start_time, timestr_fmt)
-            dt_start -= timedelta(hours=1)
-            dt_end = datetime.strptime(args.end_time, timestr_fmt)
-            dt_end -= timedelta(hours=1)
-            time_flag = "-s %s -e %s" % (dt_start.strftime(timestr_fmt),
-                                         dt_end.strftime(timestr_fmt))
+        # Determine download status. If we failed, wait and try again.
+        with open("%s/download_status.txt" % (script_path)) as f: file_status = f.read()
+        if file_status == 'True':
+            loop_is_done = False
+            log.info("File found and downloaded")
         else:
-            print('[ERROR] Missing one of -rt, -t, or -start/-end flags')
-            sys.exit(1)
+            log.info("File not found. Sleeping...")
+            time.sleep(60)
+        delta = time.time() - start
 
-    path_flag = "-p %s/IO/data" % (script_path)
-    if args.data_path is not None:
-        path_flag = "-p %s" % (args.data_path)
-    else:
-        args.data_path = "%s/IO/data" % (script_path)
-
-    arg = "%s %s/get_rap.py %s %s" % (PYTHON, script_path, time_flag, path_flag)
+def make_placefiles():
+    """Pass arguments to the process.py script to create GR-readable placefiles"""
+    arg = "%s %s/process.py -rt -meso" % (PYTHON, script_path)
     execute(arg)
-    filename = find_nearest(dt, args.data_path)
 
-    print("Closest file in time is: %s" % (filename))
-    data = read.read_data(filename)
-
-    # Direct us to the plotting/output functions
-    if args.hodo:
-        point = args.hodo.split('/')
-        point = [[float(point[1]), float(point[0])]]
-        create_hodograph(data, point, storm_motion=args.storm_motion,
-                         storm_relative=args.storm_relative)
-    if args.meso: create_placefiles(data, realtime=args.realtime)
+schedule.every().hour.at(":56").do(download_data)
+schedule.every().hour.at(":58").do(make_placefiles)
+while True:
+    schedule.run_pending()
+    time.sleep(1)

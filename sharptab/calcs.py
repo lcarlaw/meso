@@ -13,9 +13,9 @@ import sharptab.winds as winds
 import sharptab.utils as utils
 
 from time import time
+import logging as log
 
 sigma = 2
-
 def componentsTo(u,v):
     return (u, v)
 
@@ -66,9 +66,6 @@ def divide(*args):
         divArgs[i] = np.where(divArgs[i] == 0, np.float32(np.nan), 1/divArgs[i])
     return multiply(divArgs)
 
-def magnitude(u, v):
-    return np.hypot(u, v)
-
 def transform(uComponent, vComponent, s1, s2, s3, s4):
     """From AWIPS. Rotate a vector
 
@@ -115,13 +112,17 @@ def sharppy_calcs(**kwargs):
     estp = np.zeros_like(mucape)
     tts = np.zeros_like(mucape)
 
-    shear = {
+    vectors = {
         'ebwd_u': np.zeros_like(mucape),
         'ebwd_v': np.zeros_like(mucape),
         'shr3_u': np.zeros_like(mucape),
         'shr3_v': np.zeros_like(mucape),
         'shr1_u': np.zeros_like(mucape),
-        'shr1_v': np.zeros_like(mucape)
+        'shr1_v': np.zeros_like(mucape),
+        'rm5_u': np.zeros_like(mucape),
+        'rm5_v': np.zeros_like(mucape),
+        'lm5_u': np.zeros_like(mucape),
+        'lm5_v': np.zeros_like(mucape)
     }
 
     rm5 = {
@@ -156,8 +157,8 @@ def sharppy_calcs(**kwargs):
             t4 = time()
 
             # Parcel buoyancy calculations
-            mupcl = params.parcelx(prof, flag=3)
             t5 = time()
+            mupcl = params.parcelx(prof, flag=3)
             mlpcl = params.parcelx(prof, flag=4)
             t6 = time()
 
@@ -172,34 +173,39 @@ def sharppy_calcs(**kwargs):
             height_top = (mupcl.elhght + height_bot) / 2.
             ptop = interp.pres(prof, interp.to_msl(prof, height_top))
             u, v = winds.wind_shear(prof, pbot=eff_inflow[0], ptop=ptop)
-            shear['ebwd_u'][j,i], shear['ebwd_v'][j,i] = u, v
+            vectors['ebwd_u'][j,i], vectors['ebwd_v'][j,i] = u, v
             eshr[j,i] = utils.mag(u, v)
 
             p1km = interp.pres(prof, interp.to_msl(prof, 1000.))
             u, v = winds.wind_shear(prof, pbot=sfc, ptop=p1km)
-            shear['shr1_u'][j,i], shear['shr1_v'][j,i] = u, v
+            vectors['shr1_u'][j,i], vectors['shr1_v'][j,i] = u, v
 
             p3km = interp.pres(prof, interp.to_msl(prof, 3000.))
             u, v = winds.wind_shear(prof, pbot=sfc, ptop=p3km)
-            shear['shr3_u'][j,i], shear['shr3_v'][j,i] = u, v
+            vectors['shr3_u'][j,i], vectors['shr3_v'][j,i] = u, v
             t3km = interp.temp(prof, p3km)
             lr3km[j,i] = (tmpc[0,j,i] - t3km) / 3.
 
             if PASS == 0:
-                print(t2-t1, ' seconds to create a profile')
-                print(t3-t2, ' seconds for winds')
-                print(t4-t3, ' seconds for effective inflow')
-                print(t6-t5, ' seconds for parcelx')
-
+                log.info('%s seconds to create a profile' % (t2-t1))
+                log.info('%s seconds for winds' % (t3-t2))
+                log.info('%s seconds for effective inflow' % (t4-t3))
+                log.info('%s seconds for parcelx' % (t6-t5))
+                t0 = time()
             PASS += 1
+
+    log.info('%s seconds for main big loop' % (time()-t0))
 
     # Can we not loop through this thing again?
     temp = transform(rm5['BlkShr'][0], rm5['BlkShr'][1], 0., 7.5*MS2KTS, -7.5*MS2KTS, 0.)
-    BlkMag = magnitude(rm5['BlkShr'][0], rm5['BlkShr'][1])
+    BlkMag = np.hypot(rm5['BlkShr'][0], rm5['BlkShr'][1])
     rm5['u'] = rm5['0-6kmAgl'][0] + (temp[0]/BlkMag)
     rm5['v'] = rm5['0-6kmAgl'][1] + (temp[1]/BlkMag)
     lm5['u'] = rm5['0-6kmAgl'][0] - (temp[0]/BlkMag)
     lm5['v'] = rm5['0-6kmAgl'][1] - (temp[1]/BlkMag)
+    vectors['rm5_u'], vectors['rm5_v'] = rm5['u'], rm5['v']
+    vectors['lm5_u'], vectors['lm5_v'] = lm5['u'], lm5['v']
+
     t1 = time()
     for j in range(tmpc.shape[1]):
         for i in range(tmpc.shape[2]):
@@ -218,15 +224,14 @@ def sharppy_calcs(**kwargs):
             # Tornadic Tilting and Stretching parameter (TTS)
             A = (srh1 * np.clip(cape3km[j,i], 0, 150)) / 6500.
             B = np.clip(mlcape[j,i]/2000., 1, 1.5)
-            ebwd = np.hypot(shear['ebwd_u'][j,i], shear['ebwd_v'][j,i]) * KTS2MS
+            ebwd = np.hypot(vectors['ebwd_u'][j,i], vectors['ebwd_v'][j,i]) * KTS2MS
             ebwd = np.where(ebwd < 12.5, 0, ebwd)
             C = np.clip(ebwd / 20., 0, 1.5)
             TTS = np.clip(A*B*C, 0, 9999)
             if mllcl[j,i] > 1700 or mlcin[j,i] < -100: TTS = 0
             tts[j,i] = TTS
 
-    print(time()-t1, ' seconds for last loop')
-
+    log.info('%s seconds for last loop' % (time()-t1))
 
     # Apply some data masks
     lr3km = gaussian_filter(lr3km, sigma=sigma)
@@ -237,8 +242,9 @@ def sharppy_calcs(**kwargs):
     estp = gaussian_filter(estp, sigma=sigma)
     cape3km = gaussian_filter(cape3km, sigma=sigma)
     esrh = gaussian_filter(np.where(np.isnan(esrh), 0, esrh), sigma=sigma)
-    shear['ebwd_u'] = np.where(np.isnan(shear['ebwd_u']), 0, shear['ebwd_u'])
-    shear['ebwd_v'] = np.where(np.isnan(shear['ebwd_v']), 0, shear['ebwd_v'])
+    vectors['ebwd_u'] = np.where(np.isnan(vectors['ebwd_u']), 0, vectors['ebwd_u'])
+    vectors['ebwd_v'] = np.where(np.isnan(vectors['ebwd_v']), 0, vectors['ebwd_v'])
+
     tts = gaussian_filter(np.where(np.isnan(tts), 0, tts), sigma=sigma)
     ret = {
         'rm5': rm5,
@@ -251,7 +257,8 @@ def sharppy_calcs(**kwargs):
         'mlcape': mlcape,
         'mlcin': mlcin * -1,
         'mucape': mucape,
-        'shear': shear,
+        'vectors': vectors,
         'tts': tts
     }
+
     return ret

@@ -19,6 +19,8 @@ import logging
 
 # Get the script's path and set up our log file
 script_path = os.path.dirname(os.path.realpath(__file__))
+log_dir = "%s/logs" % (script_path)
+if not os.path.exists(log_dir): os.makedirs(log_dir)
 logging.basicConfig(filename='%s/logs/download.log' % (script_path),
                     format='%(levelname)s %(asctime)s :: %(message)s',
                     datefmt="%Y-%m-%d %H:%M:%S")

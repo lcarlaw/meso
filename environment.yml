@@ -13,4 +13,5 @@ dependencies:
   - pip
   - pip:
       - geojsoncontour
+      - requests
 prefix: /Users/leecarlaw/anaconda3/envs/meso

@@ -9,7 +9,6 @@ import argparse
 from multiprocessing import Pool, freeze_support
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
 
 from configs import WGRIB2, WGET
 from configs import sources, google_configs, thredds_configs, vars, grid_info
@@ -170,7 +169,7 @@ def download_data(dts, data_path, model, realtime=True):
                     if test_url(url):
                         full_name = "%s/%s" % (download_dir, filename)
                         break
-            
+
 
             status = test_url(url)
             if status:

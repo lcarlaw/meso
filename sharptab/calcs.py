@@ -15,7 +15,7 @@ import sharptab.utils as utils
 from time import time
 import logging as log
 
-sigma = 2
+sigma = 0.5
 def componentsTo(u,v):
     return (u, v)
 

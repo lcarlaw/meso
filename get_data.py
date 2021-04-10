@@ -147,6 +147,7 @@ def download_data(dts, data_path, model, realtime=True):
                 full_name = "%s/%s" % (download_dir, filename)
 
             # THREDDS. Priority 4--just for reanalysis/archive runs. Only RAP available.
+
             elif source == 'THREDDS':
                 # We have two cases here: the RAP and the old RUC. The RAP took over for
                 # the 2021-05-01/12z cycle.
@@ -169,6 +170,7 @@ def download_data(dts, data_path, model, realtime=True):
                     if test_url(url):
                         full_name = "%s/%s" % (download_dir, filename)
                         break
+            
 
             status = test_url(url)
             if status:

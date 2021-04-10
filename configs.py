@@ -23,12 +23,13 @@ plotinfo = {
 }
 
 # ----------------------------------------------------------------------------------------
-# Download configs. You likely won't need (or want) to change these.
+# Download configs. You likely won't need (or want) to change these. Priority is set by
+# the order of the dictionary keys in the sources variable.
 # ----------------------------------------------------------------------------------------
 sources = {
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',
-    'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',
     'GOOGLE': 'https://storage.googleapis.com',
+    'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',
     'THREDDS': 'https://www.ncei.noaa.gov/thredds/fileServer',
 }
 

@@ -36,31 +36,39 @@ def download_data():
     the NOMADS, FTPPRD, or GOOGLE servers
     """
     log.info("Starting download function")
-    loop_is_done = True
+    loop_is_done = False
 
     start = time.time()
     delta = time.time() - start
-    while loop_is_done and delta < 1800:
+    while not loop_is_done and delta < 1800:
         arg = "%s %s/get_data.py -rt -m HRRR" % (PYTHON, script_path)
         execute(arg)
 
         # Determine download status. If we failed, wait and try again.
         with open("%s/download_status.txt" % (script_path)) as f: file_status = f.read()
         if file_status == 'True':
-            loop_is_done = False
+            loop_is_done = True
             log.info("File found and downloaded")
         else:
             log.info("File not found. Sleeping...")
             time.sleep(60)
         delta = time.time() - start
 
+    return loop_is_done
+
 def make_placefiles():
     """Pass arguments to the process.py script to create GR-readable placefiles"""
     arg = "%s %s/process.py -rt -meso" % (PYTHON, script_path)
     execute(arg)
 
-schedule.every().hour.at(":56").do(download_data)
-schedule.every().hour.at(":58").do(make_placefiles)
+# We can schedule each of the tasks at the same time since the execution of task1
+# (download_data) will block the execution of task2 (make_placefiles) until the first task
+# has been completed.
+task1 = schedule.Scheduler()
+task2 = schedule.Scheduler()
+task1.every().hour.at(":14").do(download_data)
+task2.every().hour.at(":14").do(make_placefiles)
 while True:
-    schedule.run_pending()
+    task1.run_pending()
+    task2.run_pending()
     time.sleep(1)

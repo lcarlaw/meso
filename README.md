@@ -52,7 +52,7 @@ conda activate meso
 python run.py
 ```
 
-You can leave this running indefinitely.
+The log file can be found in `logs/downloads.log`. You can leave this process running indefinitely.
 
 ## Creating an archived case
-To-do. 
+To-do.

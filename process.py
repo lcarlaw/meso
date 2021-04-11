@@ -146,7 +146,6 @@ if __name__ == '__main__':
     dt = dt_start
     while dt <= dt_end:
         filename = find_nearest(dt, args.data_path)
-
         log.info("Closest file in time is: %s" % (filename))
         data = read.read_data(filename)
 

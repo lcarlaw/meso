@@ -166,6 +166,7 @@ def download_data(dts, data_path, model, realtime=True):
                     if test_url(url):
                         full_name = "%s/%s" % (download_dir, filename)
                         break
+                    print(url)
 
 
             status = test_url(url)
@@ -177,7 +178,7 @@ def download_data(dts, data_path, model, realtime=True):
         log.info("Target file: %s" % (full_name))
 
     if status:
-        my_pool = Pool(np.clip(1, len(downloads), 6))
+        my_pool = Pool(np.clip(1, len(downloads), 4))
         my_pool.starmap(execute_download, zip(downloads.keys(), downloads.values()))
         my_pool.map(execute_regrid, downloads.keys())
         my_pool.close()
@@ -227,6 +228,16 @@ if __name__ == '__main__':
     else:
         log.error("Missing time flags. Need one of -rt, -t, or -s and -e")
         sys.exit(1)
+
+    # Warning if user has selected archived (non-native coordinate) RAP data
+    if args.model == 'RAP' and not args.realtime:
+        warn = """*WARNING*: Archived RAP data is only available on isobaric coordinates.
+           This is known to cause issues with SHARPpy's lifting and parcel
+           functions, and may result in erroneous data. Are you sure you
+           want to proceed? [y|n]"""
+        print(warn)
+        resp = input()
+        if resp not in ['y', 'Y', 'yes']: sys.exit(1)
 
     log.info("################### New download processing ###################")
     status = download_data(list(cycle_dt), data_path=args.data_path, model=args.model,

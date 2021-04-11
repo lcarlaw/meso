@@ -50,7 +50,7 @@ cd grib2
 export CC=/usr/local/bin/gcc-9
 export CXX=c++
 export FC=gfortran-9
-make
+make -j4
 ```
 
 If `make` is successful, you should have an executable `wgrib2` binary in the `libs/grib2/wgrib2/` directory.

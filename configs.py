@@ -39,6 +39,7 @@ google_configs = {
 }
 
 thredds_configs = {
+    'RAP-current': 'model-rap130anl',
     'RAP': 'model-rap130anl-old',
     'RUC': 'model-ruc130anl'
 }

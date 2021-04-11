@@ -151,9 +151,10 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir):
             cape3km[j,i] = mlpcl.b3km
 
             # Effective BWD
-            height_bot = interp.pres(prof, mupcl.pres)
-            height_top = (mupcl.elhght + height_bot) / 2.
+            ebot_hght = interp.to_agl(prof, interp.hght(prof, eff_inflow[0]))
+            height_top = (mupcl.elhght + ebot_hght) / 2.
             ptop = interp.pres(prof, interp.to_msl(prof, height_top))
+
             ebwd_u[j,i], ebwd_v[j,i] = winds.wind_shear(prof, pbot=eff_inflow[0], ptop=ptop)
             eshr[j,i] = utils.mag(ebwd_u[j,i], ebwd_v[j,i])
 
@@ -250,7 +251,7 @@ def sharppy_calcs(**kwargs):
         'mlcin': mlcin * -1,
         'mucape': mucape,
         'vectors': vectors,
-        'tts': tts
+        'tts': tts,
     }
 
     return ret

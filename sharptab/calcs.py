@@ -1,5 +1,4 @@
 from scipy.ndimage import gaussian_filter
-import matplotlib.pyplot as plt
 import numpy as np
 from numba import njit, prange
 from functools import reduce
@@ -8,7 +7,6 @@ from functools import reduce
 from sharptab.constants import *
 import sharptab.profile as profile
 import sharptab.params as params
-import sharptab.thermo as thermo
 import sharptab.interp as interp
 import sharptab.winds as winds
 import sharptab.utils as utils

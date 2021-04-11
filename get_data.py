@@ -1,10 +1,6 @@
 from datetime import datetime, timedelta
 import requests
-from urllib.request import urlretrieve
 import os, sys
-import subprocess
-import shutil
-from distutils.spawn import find_executable
 import argparse
 from multiprocessing import Pool, freeze_support
 import pandas as pd
@@ -59,7 +55,7 @@ def execute_regrid(full_name):
         execute(arg)
 
     # Remove the original file
-    #execute("rm %s" % (full_name))
+    execute("rm %s" % (full_name))
 
 def execute_download(full_name, url):
     """Download the files in parallel"""
@@ -148,7 +144,6 @@ def download_data(dts, data_path, model, realtime=True):
                 full_name = "%s/%s" % (download_dir, filename)
 
             # THREDDS. Priority 4--just for reanalysis/archive runs. Only RAP available.
-
             elif source == 'THREDDS':
                 # We have two cases here: the RAP and the old RUC. The RAP took over for
                 # the 2021-05-01/12z cycle.

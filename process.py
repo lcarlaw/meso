@@ -16,7 +16,7 @@ import utils.plot as plot
 from utils.timing import timeit
 
 import IO.read as read
-from configs import PYTHON, plotinfo
+from configs import plotinfo
 
 from utils.cmd import execute
 

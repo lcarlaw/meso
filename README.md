@@ -4,11 +4,11 @@ This repo will create GR-readable placefiles of various parameters important to 
 ## Code Execution Time Improvements Using Numba
 The main overhaul here was to massively accelerate the CPU-intensive thermodynamic calculations performed by SHARPpy (mainly from parcel lifting calculations) using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba. In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. As a result, the original SHARPpy code had to be parsed out line-by-line to allow it to work with Numba and the `@njit` decorator, and some flexibility has certainly been lost here. The biggest issues were the lack of `**kwarg` support and numpy masked arrays. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
 
-The main overhead--roughly 40-45 seconds for each run--is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it, however, for the computation time improvements which are orders of magnitude better than pure, interpreted, Python.
+The main overhead--roughly 40-45 seconds for each run--is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it in this case due to the computationally-expensive lifting routines in SHARPpy, resulting in execution improvements which are orders of magnitude better than pure, interpreted, Python.
 
 Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz Intel Core i9-9880H CPU (8 cores, 16 threads). The domain is 240 x 210 with a 13 km grid-spacing:
 
-| Test Description      | Jitted? | Execution Time | Percent Improvement |
+| Test Description      | Jitted? | Execution Time | Percent Change      |
 | --------------------- | ------- | -------------- | ------------------- |
 | Parallel (16 threads) | Yes     | 91.21s         | N/A                 |
 | Serial (1 thread)     | Yes     | 124.35s        | 36.34%              |
@@ -48,8 +48,8 @@ cd libs
 tar -xvzf wgrib2.tgz.v3.0.2
 cd grib2
 export CC=/usr/local/bin/gcc-9
-export CXX=/usr/local/bin/gcc++-9
-export FC=gfortran
+export CXX=c++
+export FC=gfortran-9
 make
 ```
 

@@ -2,7 +2,7 @@
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
-TIMEOUT = 120 # Seconds after which to timeout the data download function 
+TIMEOUT = 120 # Seconds after which to timeout the data download function
 
 # ----------------------------------------------------------------------------------------
 # Plotting configs
@@ -28,6 +28,7 @@ plotinfo = {
 # the order of the dictionary keys in the sources variable.
 # ----------------------------------------------------------------------------------------
 sources = {
+    #'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',
     'GOOGLE': 'https://storage.googleapis.com',
     'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',

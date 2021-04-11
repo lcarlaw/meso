@@ -17,7 +17,7 @@ import logging as log
 #ray.shutdown()
 #ray.init(address='auto', _redis_password='5241590000000000')
 
-sigma = 1.75
+sigma = 1.5
 def componentsTo(u,v):
     return (u, v)
 
@@ -218,7 +218,7 @@ def sharppy_calcs(**kwargs):
 
     # Apply some data masks
     lr3km = gaussian_filter(lr3km, sigma=sigma)
-    mlcin = gaussian_filter(np.where(mlcape>20, mlcin, 0), sigma=sigma)
+    mlcin = gaussian_filter(np.where(mlcape>35, mlcin, 0), sigma=sigma)
     mucape = gaussian_filter(mucape, sigma=sigma)
     mlcape = gaussian_filter(mlcape, sigma=sigma)
     estp = np.where(np.isnan(estp), 0, estp)
@@ -234,10 +234,10 @@ def sharppy_calcs(**kwargs):
     vectors['rm5_v'] = gaussian_filter(vectors['rm5_v'], sigma=sigma)
     vectors['lm5_u'] = gaussian_filter(vectors['lm5_u'], sigma=sigma)
     vectors['lm5_v'] = gaussian_filter(vectors['lm5_v'], sigma=sigma)
-    vectors['ebwd_u'] = gaussian_filter(vectors['ebwd_u'], sigma=sigma)
-    vectors['ebwd_v'] = gaussian_filter(vectors['ebwd_v'], sigma=sigma)
     vectors['ebwd_u'] = np.where(np.isnan(vectors['ebwd_u']), 0, vectors['ebwd_u'])
     vectors['ebwd_v'] = np.where(np.isnan(vectors['ebwd_v']), 0, vectors['ebwd_v'])
+    vectors['ebwd_u'] = gaussian_filter(vectors['ebwd_u'], sigma=sigma)
+    vectors['ebwd_v'] = gaussian_filter(vectors['ebwd_v'], sigma=sigma)
 
     tts = gaussian_filter(np.where(np.isnan(tts), 0, tts), sigma=sigma)
 

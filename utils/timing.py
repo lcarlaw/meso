@@ -9,5 +9,6 @@ def timeit(f):
         result = f(*args, **kwargs)
         te = time()
         log.info('Function: %s took: %2.4f sec' % (f.__name__, te-ts))
+        log.info("************************")
         return result
     return wrap

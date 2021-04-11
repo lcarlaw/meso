@@ -20,6 +20,8 @@ import schedule
 import time
 import os
 import logging
+from glob import glob
+from datetime import datetime, timedelta
 
 from utils.cmd import execute
 from utils.timing import timeit
@@ -45,8 +47,11 @@ def download_data():
 
     start = time.time()
     delta = time.time() - start
+
+    data_path = "%s/IO/data" % (script_path)
     while not loop_is_done and delta < 1800:
-        arg = "%s %s/get_data.py -rt -m HRRR" % (PYTHON, script_path)
+        arg = "%s %s/get_data.py -rt -m HRRR -n %s -p %s" % (PYTHON, script_path, 2,
+                                                            data_path)
         execute(arg)
 
         # Determine download status. If we failed, wait and try again.
@@ -55,10 +60,15 @@ def download_data():
             loop_is_done = True
             log.info("File found and downloaded")
         else:
-            log.info("File not found. Sleeping...")
+            log.info("File not found. Clearing directory and sleeping...")
+            time_str = (datetime.utcnow()-timedelta(minutes=51)).strftime('%Y-%m-%d/%H')
+            files = glob("%s/%s/*" % (data_path, time_str))
+            for f in files:
+                arg = "rm %s" % (f)
+                log.info(arg)
+                execute(arg)
             time.sleep(60)
         delta = time.time() - start
-
     return loop_is_done
 
 def make_placefiles():

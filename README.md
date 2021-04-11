@@ -63,14 +63,38 @@ Before being able to cron the driver script, you may also have to type: `chmod +
 ## Running in real time
 We can avoid the use of the system's cron-scheduler and issues with system `$PATH` variables by using the `schedule` module in Python.
 
-The `run.py` script is setup to activate the `get_data.py` module at :56 after each hour to download real time HRRR data on the native hybrid-sigma coordinate system and then upscale to the 13-km RAP horizontal grid-spacing. The native coordinate system affords more accurate parcel calculations in SHARPpy over the smaller isobaric files. The NOMADS server is queried first, followed by the backup FTPPRD servers, and finally the GOOGLE cloud, which uploads HRRR data in near-real time. Once data is available on the local filesystem, `process.py` is called to produce GR-readable placefiles. To run, simply type:
+The `run.py` script is setup to activate the `get_data.py` module at :54 after each hour to download real time HRRR data on the native hybrid-sigma coordinate system and then upscaled to the 13-km RAP horizontal grid-spacing. The 1 and 2-hour forecasts are linearly interpolated in time to produce a 1.5 hour forecast to update meteorological parameters three times per hour.
+
+HRRR data is being used over the RAP for a few reasons:
+
+- It's available consistently around :53-54 for all 24 cycles/day as opposed to :30-35
+  for the RAP on its 12z and 00z cycles.
+- Can quickly be "upscaled" to the same 13-km grid spacing as the RAP using WGRIB2
+  to ease computations.
+- The Google Cloud archive for the HRRR is more extensive as it goes back to 2014.
+  The RAP currently only goes back to 2021-02-22.
+- The HRRR dataset on the Google Cloud is very near real time as opposed to the RAP,
+  which seems to be delayed by ~4 hours. This is potentially a benefit if both the
+  NOMADS and FTPPRD servers are down.
+
+To automate, type:
 
 ```
 conda activate meso
 python run.py
 ```
 
-The log file can be found in `logs/downloads.log`. You can leave this process running indefinitely.
+Important log files will be located in the `logs` directory. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
 
 ## Creating an archived case
-To-do.
+### Download the model data
+The `get_data.py` script will download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. The 1-hour forecasts were chosen over 0-hour analyses to recreate what would have been available to forecasters in real time. `get_data.py` will accept a single time or a time range.  
+
+For this example, we'll download data during the August 10th, 2020 Midwest Derecho:
+
+```
+python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR` &
+python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso`
+```
+
+When the scripts finish, text placefiles should be available in the `output` directory. As in the realtime case, these files will automatically time match in GR, this time at the bottom of the hour. 

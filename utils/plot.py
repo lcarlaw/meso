@@ -3,6 +3,7 @@ import numpy as np
 import geojsoncontour
 import json
 from datetime import timedelta
+from collections import defaultdict
 
 import sharptab.winds as winds
 from utils.plot_configs import metadata as meta
@@ -150,15 +151,16 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     plt.close(fig)
     return out
 
-def write_placefile(arr, plotinfo, realtime=False):
+def write_placefile(arrs, plotinfo, realtime=False):
     """Main function controlling the plotting of GR2/Analyst-readable placefiles. Called
     by the primary run.py script.
 
     Parameters:
     -----------
-    arr : dictionary
-        Dictionary storing values necessary for plotting. This includes longitudes,
-        latitudes, valid times, and any 2-d arrays.
+    arrs : [dictionary]
+        List of dictionaries storing values necessary for plotting. This includes
+        longitudes, latitudes, valid times, and any 2-d arrays. Each list entry
+        corresponds to a new forecast time.
     plotinfo : string
 
     Other Parameters:
@@ -169,39 +171,47 @@ def write_placefile(arr, plotinfo, realtime=False):
 
     """
     parms = plotinfo.keys()
-    lon, lat = arr['lons'], arr['lats']
-    save_time = arr['valid_time'].strftime('%Y%m%d%H')
-    valid_str = arr['valid_time'].strftime('%HZ %a %b %d %Y')
+    out_dict = defaultdict(list)
+    for i in range(len(arrs)):
+        arr = arrs[i]
+        lon, lat = arr['lons'], arr['lats']
+        save_time = arr['valid_time'].strftime('%Y%m%d%H')
+        valid_str = arr['valid_time'].strftime('%H:%MZ %a %b %d %Y')
 
-    # Construct the time range string
-    if realtime:
-        start = arr['valid_time'] - timedelta(minutes=5)
-        end = arr['valid_time'] + timedelta(minutes=60)
-    else:
-        start = arr['valid_time'] - timedelta(seconds=1799)
-        end = arr['valid_time'] + timedelta(seconds=1800)
-
-    timerange_str = "%s %s" % (start.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                               end.strftime('%Y-%m-%dT%H:%M:%SZ'))
-    time_str = "%sZ HRRR | F%s Valid: %s" % (str(arr['cycle_time'].hour).zfill(2),
-                                            str(arr['fhr']).zfill(2), valid_str)
-    for parm in parms:
-        meta[parm]['plotinfo'] = plotinfo[parm]
-        plot_type = meta[parm]['plot_type']
-        if plot_type == 'contour':
-            out = contour(lon, lat, arr[parm], time_str, timerange_str, **meta[parm])
-        elif plot_type == 'contourf':
-            out = contourf(lon, lat, arr[parm], time_str, timerange_str, **meta[parm])
-        elif plot_type == 'barb':
-            out = barbs(lon, lat, arr['vectors'], parm, time_str, timerange_str, **meta[parm])
+        # Construct the time range string
+        if realtime:
+            start = arr['valid_time'] - timedelta(minutes=15)
+            end = arr['valid_time'] + timedelta(minutes=15)
         else:
-            raise ValueError("%s is an invalid plot_type entry" % (plot_type))
+            start = arr['valid_time'] - timedelta(seconds=1799)
+            end = arr['valid_time'] + timedelta(seconds=1800)
 
+        timerange_str = "%s %s" % (start.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                   end.strftime('%Y-%m-%dT%H:%M:%SZ'))
+        time_str = "%sZ HRRR | Valid: %s" % (str(arr['cycle_time'].hour).zfill(2),
+                                             valid_str)
+        for parm in parms:
+            meta[parm]['plotinfo'] = plotinfo[parm]
+            plot_type = meta[parm]['plot_type']
+            if plot_type == 'contour':
+                out = contour(lon, lat, arr[parm], time_str, timerange_str, **meta[parm])
+            elif plot_type == 'contourf':
+                out = contourf(lon, lat, arr[parm], time_str, timerange_str, **meta[parm])
+            elif plot_type == 'barb':
+                out = barbs(lon, lat, arr['vectors'], parm, time_str, timerange_str,
+                            **meta[parm])
+            else:
+                raise ValueError("%s is an invalid plot_type entry" % (plot_type))
+
+            out_dict[parm].extend(out)
+
+    for parm in parms:
+        output = out_dict[parm]
         if not realtime:
             out_file = '%s/%s_%s.txt' % (outdir, parm, save_time)
         else:
             out_file = '%s/%s.txt' % (outdir, parm)
-        with open(out_file, 'w') as f: f.write("".join(out))
+        with open(out_file, 'w') as f: f.write("".join(output))
 
 def barbs(lon, lat, data, parm, time_str, timerange_str, **kwargs):
     plotinfo = kwargs.get('plotinfo', 'None')

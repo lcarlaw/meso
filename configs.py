@@ -1,6 +1,6 @@
 # The USER must edit these file paths
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
-WGRIB2 = '/Users/leecarlaw/scripts/meso/libs/grib2/wgrib2/wgrib2'
+WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
 
 # ----------------------------------------------------------------------------------------

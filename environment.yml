@@ -67,6 +67,7 @@ dependencies:
   - python_abi=3.8
   - readline=8.1
   - requests=2.25.1
+  - schedule
   - scipy=1.6.2
   - setuptools=49.6.0
   - six=1.15.0

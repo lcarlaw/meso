@@ -93,8 +93,8 @@ The `get_data.py` script will download archived 1-hour forecasts either from the
 For this example, we'll download data during the August 10th, 2020 Midwest Derecho:
 
 ```
-python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR` &
-python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso`
+python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR &
+python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso
 ```
 
-When the scripts finish, text placefiles should be available in the `output` directory. As in the realtime case, these files will automatically time match in GR, this time at the bottom of the hour. 
+When the scripts finish, text placefiles should be available in the `output` directory. As in the realtime case, these files will automatically time match in GR, this time at the bottom of the hour.

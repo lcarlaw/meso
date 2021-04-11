@@ -2,6 +2,7 @@
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
+TIMEOUT = 120 # Seconds after which to timeout the data download function 
 
 # ----------------------------------------------------------------------------------------
 # Plotting configs

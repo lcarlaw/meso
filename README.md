@@ -10,9 +10,9 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 
 | Test Description      | Jitted? | Execution Time | Percent Change      |
 | --------------------- | ------- | -------------- | ------------------- |
-| Parallel (16 threads) | Yes     | 91.21s         | N/A                 |
-| Serial (1 thread)     | Yes     | 124.35s        | 36.34%              |
-| Serial (1 thread)     | No      | 1959.84s       | 2048.71%            |
+| Parallel (16 threads) | Yes     | 83.13s         | N/A                 |
+| Serial (1 thread)     | Yes     | 124.35s        | 49.59%              |
+| Serial (1 thread)     | No      | 1959.84s       | 2256.97%            |
 
 ### To do:
 - Build in automated checks for hung processes in the `run.py` driver

@@ -6,7 +6,9 @@ from multiprocessing import Pool, freeze_support
 import pandas as pd
 import numpy as np
 
-from configs import WGRIB2, WGET
+import timeout_decorator
+
+from configs import WGRIB2, WGET, TIMEOUT
 from configs import sources, google_configs, thredds_configs, vars, grid_info
 from utils.timing import timeit
 from utils.cmd import execute
@@ -88,7 +90,8 @@ def make_dir(run_time, data_path):
     if not os.path.exists(download_dir): os.makedirs(download_dir)
     return download_dir
 
-@timeit
+# The goal is to catch hung download processes here.
+@timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
 def download_data(dts, data_path, model, realtime=True):
     """Function called by main() to control download of model data.
 
@@ -98,6 +101,7 @@ def download_data(dts, data_path, model, realtime=True):
         Availability of the dataset. False if unavailable.
 
     """
+    status = False
     if model is None: model = 'RAP'
     if data_path is None: data_path = '%s/data' % (script_path)
 
@@ -119,8 +123,6 @@ def download_data(dts, data_path, model, realtime=True):
             sys.exit(1)
 
         full_name = "%s/%s" % (download_dir, filename)
-        status = False
-
         for source in sources.keys():
             base_url = sources[source]
 
@@ -240,6 +242,7 @@ if __name__ == '__main__':
         if resp not in ['y', 'Y', 'yes']: sys.exit(1)
 
     log.info("################### New download processing ###################")
+    with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(False))
     status = download_data(list(cycle_dt), data_path=args.data_path, model=args.model,
                            realtime=args.realtime)
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(status))

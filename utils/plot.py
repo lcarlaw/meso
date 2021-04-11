@@ -8,9 +8,10 @@ from utils.plot_configs import metadata as meta
 
 import os
 script_path = os.path.dirname(os.path.realpath(__file__))
+parent_path = os.path.dirname(script_path)
 
 ALPHA = 90
-outdir = '/Users/leecarlaw/scripts/meso/output'
+outdir = "%s/output" % (parent_path)
 WINDICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
 def contour(lon, lat, data, time_str, **kwargs):
     """Contour plot using geojsoncontour.
@@ -170,7 +171,7 @@ def write_placefile(arr, plotinfo, realtime=False):
         elif plot_type == 'contourf':
             out = contourf(lon, lat, arr[parm], time_str, **meta[parm])
         elif plot_type == 'barb':
-            out = barbs(lon, lat, arr['shear'], parm, time_str, **meta[parm])
+            out = barbs(lon, lat, arr['vectors'], parm, time_str, **meta[parm])
         else:
             raise ValueError("%s is an invalid plot_type entry" % (plot_type))
 

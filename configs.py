@@ -1,8 +1,11 @@
-PYTHON = '/Users/leecarlaw/anaconda3/envs/general/bin/python'
-WGRIB2 = '/usr/local/bin/wgrib2'
+# The USER must edit these file paths
+PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
+WGRIB2 = '/Users/leecarlaw/scripts/meso/libs/grib2/wgrib2/wgrib2'
 WGET = '/usr/local/bin/wget'
 
-# Plotting information.
+# ----------------------------------------------------------------------------------------
+# Plotting configs
+# ----------------------------------------------------------------------------------------
 plotinfo = {
     'cape3km': '0-3 km MLCAPE (J/kg)',
     'estp': 'Significant Tornado (Effective)',
@@ -15,4 +18,30 @@ plotinfo = {
     'tts': 'Tornadic Tilting and Stretching Parameter',
     'shr3': '0-3 km shear vector (kt)',
     'ebwd': 'Effective bulk shear (kt)',
+    'rm5': 'Right Bunkers motion vector',
+    'lm5': 'Left Bunkers motion vector',
 }
+
+# ----------------------------------------------------------------------------------------
+# Download configs. You likely won't need (or want) to change these. Priority is set by
+# the order of the dictionary keys in the sources variable.
+# ----------------------------------------------------------------------------------------
+sources = {
+    'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',
+    'GOOGLE': 'https://storage.googleapis.com',
+    'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',
+    'THREDDS': 'https://www.ncei.noaa.gov/thredds/fileServer',
+}
+
+google_configs = {
+    'RAP': 'rapid-refresh',
+    'HRRR': 'high-resolution-rapid-refresh'
+}
+
+thredds_configs = {
+    'RAP': 'model-rap130anl-old',
+    'RUC': 'model-ruc130anl'
+}
+
+vars = ':(HGT|TMP|SPFH|UGRD|VGRD|PRES):'
+grid_info = 'lambert:262.5:38.5 -105:240:13545.000000 25:210:13545.000000'

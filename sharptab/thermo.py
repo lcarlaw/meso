@@ -1,9 +1,13 @@
 from numba import njit
 from numba import float64
+from numba import vectorize
 
 import numpy as np
 from numpy.core.numeric import normalize_axis_index
 from .constants import *
+
+from utils.timing import timeit
+from time import time
 
 sat_pressure_0c = 6.112
 c1 = 0.0498646455
@@ -469,7 +473,7 @@ def saturation_vapor_pressure(temperature):
         17.67 * (temperature - 273.15) / (temperature - 29.65)
     )
 
-# @njit
+#@njit
 def vapor_pressure(pressure, mixing):
     """Calculate water vapor (partial) pressure.
     Given total `pressure` and water vapor `mixing` ratio, calculates the partial
@@ -714,6 +718,7 @@ def wetlift3(p, t, p2):
     return satlift3(p2, thetam)
 
 @njit
+#@vectorize(["float64(float64)"], nopython=True)
 def wobf2(t):
     """Implementation of the Wobus Function for computing the moist adiabats.
 
@@ -723,7 +728,7 @@ def wobf2(t):
 
     Parameters
     ----------
-    t : number, numpy array
+    t : number
         Temperature (C)
 
     Returns
@@ -755,6 +760,7 @@ def wobf2(t):
         ppol = 1 + t * (3.6182989e-03 + t * (-1.3603273e-05 + ppol))
         ppol = (29.93 / np.power(ppol, 4)) + (0.96 * t) - 14.8
         return ppol
+
 
 @njit
 def wobf(t):
@@ -1060,7 +1066,8 @@ def mixratio(p, t):
     fwesw = wfw * vappres(t)
     return 621.97 * (fwesw / (p - fwesw))
 
-@njit
+#@njit
+@vectorize(["float64(float64)"], nopython=True)
 def vappres(t):
     """Returns the vapor pressure of dry air at given temperature
 

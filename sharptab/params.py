@@ -1,6 +1,7 @@
 from numba import njit
 from numba.experimental import jitclass
 from numba import int32, float64
+from numba import vectorize
 
 import numpy as np
 import numpy.ma as ma
@@ -734,7 +735,6 @@ def parcelx(prof, flag, *args):
         pcl.bminpres = pcl.ptrace[idx][idx2]
     """
     return pcl
-
 
 spec = [
     ("pres", float64),

@@ -4,7 +4,15 @@ This repo will create GR-readable placefiles of various parameters important to 
 ## Code Execution Time Improvements Using Numba
 The main overhaul here was to massively accelerate the CPU-intensive thermodynamic calculations performed by SHARPpy (mainly from parcel lifting calculations) using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba. In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. As a result, the original SHARPpy code had to be parsed out line-by-line to allow it to work with Numba and the `@njit` decorator, and some flexibility has certainly been lost here. The biggest issues were the lack of `**kwarg` support and numpy masked arrays. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
 
-The main overhead--roughly 30 seconds for each run--is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it, however, for the computation time improvements which are orders of magnitude better than pure, interpreted, Python.
+The main overhead--roughly 40-45 seconds for each run--is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it, however, for the computation time improvements which are orders of magnitude better than pure, interpreted, Python.
+
+Here is how a few benchmarks compare. The domain is 240 x 210 with a 13 km grid-spacing:
+
+| Test Description      | Jitted? | Execution Time | Percent Improvement |
+| --------------------- | ------- | -------------- | ------------------- |
+| Parallel (16 threads) | Yes     | 91.21s         | N/A                 |
+| Serial (1 thread)     | Yes     | 124.35s        | 36.34%              |
+| Serial (1 thread)     | No      | 1959.84s       | 2048.71%            |
 
 ### To do:
 - Build in automated checks for hung processes in the `run.py` driver

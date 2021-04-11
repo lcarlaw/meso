@@ -28,7 +28,6 @@ plotinfo = {
 # the order of the dictionary keys in the sources variable.
 # ----------------------------------------------------------------------------------------
 sources = {
-    #'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',
     'GOOGLE': 'https://storage.googleapis.com',
     'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',

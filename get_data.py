@@ -33,6 +33,7 @@ def interpolate_in_time(download_dir):
     #    '90 min fcst': [0.5, 0.5],
     #    '105 min fcst': [0.25, 0.75]
     #}
+    files = sorted(glob(download_dir + '/*.reduced'))
     arg = "%s %s %s %s %s %s %s %s/%s" % (
          WGRIB2, files[0], '-rpn sto_1 -import_grib', files[1],
          '-rpn sto_2 -set_grib_type same -if',
@@ -142,6 +143,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
     if model is None: model = 'RAP'
     if data_path is None: data_path = '%s/data' % (script_path)
 
+    SOURCES = list(sources.keys())
     fhrs = np.arange(1, int(num_hours)+1, 1)
     downloads = {}
     urls = {}
@@ -161,8 +163,12 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                 log.error("Bad model type passed")
                 sys.exit(1)
 
+            # If it's too early, don't try to use the FTPPRD backup site (slower download)
+            delta = abs((datetime.utcnow() - dt).total_seconds())
+            if delta < 3900: SOURCES.remove('FTPPRD')
+
             full_name = "%s/%s" % (download_dir, filename)
-            for source in sources.keys():
+            for source in SOURCES:
                 base_url = sources[source]
 
                 # NOMADS or backup FTPPRD site. Priority 1 and 2
@@ -272,7 +278,8 @@ if __name__ == '__main__':
 
     if args.realtime or args.time_str is not None:
         if args.realtime:
-            cycle_dt = [datetime.utcnow() - timedelta(minutes=51)]
+            target = datetime.utcnow() - timedelta(minutes=51)
+            cycle_dt = [datetime(target.year, target.month, target.day, target.hour)]
         else:
             cycle_dt = [datetime.strptime(args.time_str, timestr_fmt)]
 

@@ -6,7 +6,7 @@ The main overhaul here was to massively accelerate the CPU-intensive thermodynam
 
 The main overhead--roughly 40-45 seconds for each run--is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it, however, for the computation time improvements which are orders of magnitude better than pure, interpreted, Python.
 
-Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz 8 core Intel Core i8-9880H CPU. The domain is 240 x 210 with a 13 km grid-spacing:
+Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz Intel Core i9-9880H CPU (8 cores, 16 threads). The domain is 240 x 210 with a 13 km grid-spacing:
 
 | Test Description      | Jitted? | Execution Time | Percent Improvement |
 | --------------------- | ------- | -------------- | ------------------- |

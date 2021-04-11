@@ -1,7 +1,42 @@
 ''' Frequently used functions '''
 import numpy as np
 from numba import njit
+from numba.extending import overload
+from numba import types
 from sharptab.constants import MISSING, TOL
+
+@overload(np.clip)
+def impl_clip(a, a_min, a_max):
+    if not isinstance(a_min, (types.Integer, types.Float, types.NoneType)):
+        raise TypingError("a_min must be a_min scalar int/float")
+    if not isinstance(a_max, (types.Integer, types.Float, types.NoneType)):
+        raise TypingError("a_max must be a_min scalar int/float")
+    if isinstance(a_min, types.NoneType) and isinstance(a_max, types.NoneType):
+        raise TypingError("a_min and a_max can't both be None")
+
+    if isinstance(a, (types.Integer, types.Float)):
+        if isinstance(a_min, types.NoneType):
+            def impl(a, a_min, a_max):
+                return min(a, a_max)
+        elif isinstance(a_max, types.NoneType):
+            def impl(a, a_min, a_max):
+                return max(a, a_min)
+        else:
+            def impl(a, a_min, a_max):
+                return min(max(a, a_min), a_max)
+    elif (
+        isinstance(a, types.Array) and
+        a.ndim == 1 and
+        isinstance(a.dtype, (types.Integer, types.Float))
+    ):
+        def impl(a, a_min, a_max):
+            out = np.empty_like(a)
+            for i in range(a.size):
+                out[i] = np.clip(a[i], a_min, a_max)
+            return out
+    else:
+        raise TypingError("`a` must be an int/float or a 1D array of ints/floats")
+    return impl
 
 @njit
 def weighted_average(field, weight):

@@ -68,8 +68,8 @@ def make_placefiles():
 # has been completed.
 task1 = schedule.Scheduler()
 task2 = schedule.Scheduler()
-task1.every().hour.at(":14").do(download_data)
-task2.every().hour.at(":14").do(make_placefiles)
+task1.every().hour.at(":54").do(download_data)
+task2.every().hour.at(":54").do(make_placefiles)
 while True:
     task1.run_pending()
     task2.run_pending()

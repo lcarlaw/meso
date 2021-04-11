@@ -49,6 +49,7 @@ spec = [
 ]
 
 @jitclass(spec)
+
 class Profile(object):
     def __init__(self, pres, tmpc, dwpc, wspd, wdir, hght):
         # def __init__(self, pres):

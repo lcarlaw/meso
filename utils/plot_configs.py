@@ -1,19 +1,19 @@
 metadata = {
     'shr3': {
         'plot_type': 'barb',
-        'skip': 5,
+        'skip': 8,
     },
     'rm5': {
         'plot_type': 'barb',
-        'skip': 5,
+        'skip': 8,
     },
     'lm5': {
         'plot_type': 'barb',
-        'skip': 5,
+        'skip': 8,
     },
     'ebwd': {
         'plot_type': 'barb',
-        'skip': 5,
+        'skip': 8,
     },
     'esrh': {
         'plot_type': 'contour',

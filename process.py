@@ -13,11 +13,11 @@ import sharptab.winds as winds
 import utils.plot_hodos as plot_hodos
 import utils.hodographs as hodographs
 import utils.plot as plot
+from utils.timing import timeit
 
 import IO.read as read
 from configs import PYTHON, plotinfo
 
-from utils.timing import timeit
 from utils.cmd import execute
 
 script_path = os.path.dirname(os.path.realpath(__file__))

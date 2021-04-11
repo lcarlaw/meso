@@ -15,6 +15,12 @@ The main overhead--roughly 30 seconds for each run--is due to the nature of "jus
 ## Basic Setup Notes
 The setup here proceeds using Anaconda, as well as assuming a completely vanilla Python3 install. I've also edited my `~/.condarc` file to add conda-forge to the default channels.
 
+### Exporting the base environment
+
+```
+conda env export --no-builds > environment.yml
+```
+
 ### Creating the base environment
 Run the following to create an Anaconda environment called `meso` with the required libraries:
 
@@ -26,16 +32,20 @@ conda env create -f environment.yml
 You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file.
 
 #### Installing the latest WGRIB2 binary
-The latest version of wgrib2 has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. The basic information here is that some of the older RAP/RUC grib files store the UGRD and VGRD entries separately, and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward:
+The latest version of wgrib2 has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. The basic information here is that some of the older RAP/RUC grib files store the UGRD and VGRD entries separately, and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine.
 
 ```
+brew install gcc@9
 cd libs
 tar -xvzf wgrib2.tgz.v3.0.2
 cd grib2
+export CC=/usr/local/bin/gcc-9
+export CXX=/usr/local/bin/gcc++-9
+export FC=gfortran
 make
 ```
 
-If the make command works, you should have an executable `wgrib2` binary in the `libs/grib2/wgrib2/` directory.
+If `make` is successful, you should have an executable `wgrib2` binary in the `libs/grib2/wgrib2/` directory.
 
 If desired, you can then softlink this into the standard location on most file systems with a `sudo ln -s libs/grib2/wgrib2/wgrib2 /usr/local/bin`. Either way, update the `WGRIB2` variable in the `configs.py` file to point to the `WGRIB2` binary location.
 

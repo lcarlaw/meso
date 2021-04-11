@@ -46,7 +46,7 @@ def execute_regrid(full_name):
     save_name = "%s.reduced" % (full_name)
     if not os.path.exists(save_name):
         if 'ncei' in full_name:
-            # WGRIB2 interpolation doesn't seem to work on some of the UGRD/VGRD fields.
+            # Need to re-order the ugrd and vgrd entries
             arg = "%s %s -new_grid_order - junk | %s - -new_grid %s %s" % (WGRIB2,
                                                                            full_name,
                                                                            WGRIB2,
@@ -59,7 +59,7 @@ def execute_regrid(full_name):
         execute(arg)
 
     # Remove the original file
-    execute("rm %s" % (full_name))
+    #execute("rm %s" % (full_name))
 
 def execute_download(full_name, url):
     """Download the files in parallel"""

@@ -227,7 +227,7 @@ def barbs(lon, lat, data, parm, time_str, timerange_str, **kwargs):
         for i in range(data[parm + '_u'].shape[1])[::skip]:
             wdir, wspd = winds.comp2vec(float(data[parm + '_u'][j,i]),
                                         float(data[parm + '_v'][j,i]))
-            if wspd > 20:
+            if wspd > 14.5:
                 wspd_rounded = 5 * round(wspd/5)
                 numref = str(int(wspd_rounded//5))
                 out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')

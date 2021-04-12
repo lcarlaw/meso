@@ -56,8 +56,14 @@ def test_url(url):
     url : string
         URL we're testing for
     """
-    ru = requests.head(url)
-    return ru.ok
+    print('TOP')
+    try:
+        ru = requests.head(url, timeout=0.5)
+        status = ru.ok
+    except:
+        status = False
+    print(status)
+    return status
 
 def execute_regrid(full_name):
     """

@@ -48,10 +48,17 @@ def download_data():
     start = time.time()
     delta = time.time() - start
 
+    target_dt = datetime.utcnow()-timedelta(minutes=51)
+    time_str = target_dt.strftime('%Y-%m-%d/%H')
+
+    model_flag = '-m RAP'
+    if target_dt.hour in [12, 0]:
+        model_flag = '-m HRRR'
+
     data_path = "%s/IO/data" % (script_path)
     while not loop_is_done and delta < 1800:
-        arg = "%s %s/get_data.py -rt -m HRRR -n %s -p %s" % (PYTHON, script_path, 2,
-                                                            data_path)
+        arg = "%s %s/get_data.py -rt %s -n 2 -p %s" % (PYTHON, script_path, model_flag,
+                                                       data_path)
         execute(arg)
 
         # Determine download status. If we failed, wait and try again.
@@ -61,7 +68,6 @@ def download_data():
             log.info("File found and downloaded")
         else:
             log.info("File not found. Clearing directory and sleeping...")
-            time_str = (datetime.utcnow()-timedelta(minutes=51)).strftime('%Y-%m-%d/%H')
             files = glob("%s/%s/*" % (data_path, time_str))
             for f in files:
                 arg = "rm %s" % (f)
@@ -81,8 +87,8 @@ def make_placefiles():
 # has been completed.
 task1 = schedule.Scheduler()
 task2 = schedule.Scheduler()
-task1.every().hour.at(":53").do(download_data)
-task2.every().hour.at(":53").do(make_placefiles)
+task1.every().hour.at(":54").do(download_data)
+task2.every().hour.at(":54").do(make_placefiles)
 while True:
     task1.run_pending()
     task2.run_pending()

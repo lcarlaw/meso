@@ -29,10 +29,10 @@ logging.basicConfig(filename='%s/logs/process.log' % (script_path),
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
-def create_hodograph(data, point, storm_motion='right-mover', storm_relative=False):
+def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
+                     storm_relative=False):
     for i in range(len(data)):
         arr = data[i]
-
         idx = interp.nearest_idx(point, arr['lons'], arr['lats'])
         u, v = winds.vec2comp(arr['wdir'][:,idx[0][0], idx[0][1]],
                               arr['wspd'][:,idx[0][0], idx[0][1]])
@@ -46,6 +46,11 @@ def create_hodograph(data, point, storm_motion='right-mover', storm_relative=Fal
         hodo_data['cycle_time'] = arr['cycle_time']
         hodo_data['fhr'] = arr['fhr']
         hodo_data['lon'], hodo_data['lat'] = point[0][0], point[0][1]
+
+        if sfc_wind:
+            sfc_wind = hodographs.parse_vector(sfc_wind)
+            sfc_wind = winds.vec2comp(sfc_wind[0], sfc_wind[1])
+            hodo_data['uwnd'][0], hodo_data['vwnd'][0] = sfc_wind[0], sfc_wind[1]
 
         params = hodographs.compute_parameters(hodo_data, storm_motion)
         plot_hodos.plot_hodograph(hodo_data, params, storm_relative=storm_relative)
@@ -113,6 +118,8 @@ if __name__ == '__main__':
                     help='Hodograph plot at a point ex: 35.03/-101.23')
     ap.add_argument('-sr', '--storm-relative', dest='storm_relative', action='store_true',
                     help='Flag to create a Storm Relative hodograph')
+    ap.add_argument('-sw', '--sfc-wind', dest='sfc_wind', help='Surface wind. Form is    \
+                    DDD/SS (e.g. 240/25)')
     ap.add_argument('-m', '--storm-motion', dest='storm_motion',
                     help='Storm motion vector. It takes one of two forms. The first is   \
                           either "BRM" for the Bunkers right mover vector, or "BLM" for  \
@@ -125,7 +132,7 @@ if __name__ == '__main__':
     timestr_fmt = '%Y-%m-%d/%H'
     dt_end = None
     if args.realtime:
-        dt_start = datetime.utcnow() - timedelta(hours=1)
+        dt_start = datetime.utcnow() - timedelta(minutes=51)
     else:
         if args.time_str is not None:
             dt_start = datetime.strptime(args.time_str, timestr_fmt)
@@ -168,10 +175,10 @@ if __name__ == '__main__':
 
         dt += timedelta(hours=1)
 
-    # Direct us to the plotting/output functions. 
+    # Direct us to the plotting/output functions.
     if args.hodo:
         point = args.hodo.split('/')
         point = [[float(point[1]), float(point[0])]]
         create_hodograph(data, point, storm_motion=args.storm_motion,
-                         storm_relative=args.storm_relative)
+                         sfc_wind=args.sfc_wind, storm_relative=args.storm_relative)
     if args.meso: create_placefiles(data, realtime=args.realtime)

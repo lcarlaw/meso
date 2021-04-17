@@ -63,12 +63,21 @@ def read_data(filename):
         native = False
         level_type = 'isobaricInhPa'
         heights = grb.select(name='Geopotential Height', typeOfLevel=level_type)
-        rh = grb.select(name='Relative humidity', typeOfLevel=level_type)
         psfc = grb.select(name='Surface pressure')[0].values
         t2m = grb.select(name='2 metre temperature')[0].values
-        td2m = grb.select(name='2 metre dewpoint temperature')[0].values
         u10m = grb.select(name='10 metre U wind component')[0].values
         v10m = grb.select(name='10 metre V wind component')[0].values
+
+        try:
+            rh = grb.select(name='Relative humidity', typeOfLevel=level_type)
+        except ValueError:
+            q = grb.select(name='Specific humidity', typeOfLevel=level_type)
+
+        try:
+            td2m = grb.select(name='2 metre dewpoint temperature')[0].values
+        except ValueError:
+            q2m = grb.select(name='Specific humidity', level=2)[0].values
+            td2m = thermo.dewpoint_from_q(q2m, t2m, psfc)
 
         # Determine how the data is oriented vertically
         if heights[0].values[0,0] > heights[-1].values[0,0]:
@@ -108,8 +117,13 @@ def read_data(filename):
                 wdir[lev], wspd[lev] = winds.wind_vecs(uwind[lev-delta].values,
                                                        vwind[lev-delta].values)
                 hght[lev] = heights[lev-delta].values
-                dwpc[lev] = thermo.dewpoint_from_rh(temperatures[lev-delta].values,
-                                                    rh[lev-delta].values/100)
+                try:
+                    dwpc[lev] = thermo.dewpoint_from_rh(temperatures[lev-delta].values,
+                                                        rh[lev-delta].values/100)
+                except:
+                    dwpc[lev] = thermo.dewpoint_from_q(q[lev].values,
+                                                       temperatures[lev].values,
+                                                       pres[lev])
 
         # Native coordinates
         else:

@@ -4,6 +4,9 @@ import numpy as np
 from sharptab.interp import generic_interp_hght
 from sharptab.winds import comp2vec, vec2comp
 
+def parse_vector(vec_str):
+    return tuple(int(v) for v in vec_str.strip().split("/"))
+
 def _clip_profile(prof, alt, clip_alt, intrp_prof):
     try:
         idx_clip = np.where((alt[:-1] <= clip_alt) & (alt[1:] > clip_alt))[0][0]

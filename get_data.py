@@ -56,13 +56,11 @@ def test_url(url):
     url : string
         URL we're testing for
     """
-    print('TOP')
     try:
         ru = requests.head(url, timeout=0.5)
         status = ru.ok
     except:
         status = False
-    print(status)
     return status
 
 def execute_regrid(full_name):
@@ -171,7 +169,8 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
 
             # If it's too early, don't try to use the FTPPRD backup site (slower download)
             delta = abs((datetime.utcnow() - dt).total_seconds())
-            if delta < 3900: SOURCES.remove('FTPPRD')
+            if delta < 3900:
+                if 'FTPPRD' in SOURCES: SOURCES.remove('FTPPRD')
 
             full_name = "%s/%s" % (download_dir, filename)
             for source in SOURCES:
@@ -190,7 +189,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                     # use of the HRRR here and upscaling to 13 km, in the event NOMADS
                     # and the ftpprd site are down.
                     model_name = google_configs[model]
-                    filename = "hrrr.t%sz.wrfnatf%s.grib2" % (str(dt.hour).zfill(2),
+                    filename = "hrrr.t%sz.wrfnat%s.grib2" % (str(dt.hour).zfill(2),
                                                               str(fhr).zfill(2))
                     url = "%s/%s/%s.%s/conus/%s" % (base_url, model_name, model.lower(),
                                                  dt.strftime('%Y%m%d'), filename)
@@ -324,4 +323,4 @@ if __name__ == '__main__':
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(status))
 
     # If this is realtime, interpolate the 1 and 2-hour forecasts in time
-    if status and args.realtime: interpolate_in_time(download_dir)
+    if status and args.realtime and args.num_hours == 2: interpolate_in_time(download_dir)

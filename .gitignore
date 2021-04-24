@@ -2,7 +2,7 @@
 **/IO/data
 **junk
 /IO/get_rap.py.original
-/tests
+/testing
 __pycache__/
 /libs/grib2
 .DS_Store

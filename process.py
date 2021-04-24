@@ -68,8 +68,8 @@ def create_placefiles(data, realtime=False):
         out_arrs.append(calcs.sharppy_calcs(**prof_data))
         for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
             out_arrs[-1][item] = arr[item]
-            
-        plot.write_placefile(out_arrs, plotinfo, realtime=realtime)
+
+    plot.write_placefile(out_arrs, plotinfo, realtime=realtime)
     log.info("---- Finished processing ----")
 
 def find_nearest(dt, datadir):

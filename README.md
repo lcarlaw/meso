@@ -15,6 +15,7 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
+- Figure out GR's polygon fill rules: stripes on contour-filled plots...
 - Build in automated checks for hung processes in the `run.py` driver
 - Change the `-s, -e, -t` times to be expected valid times instead of cycle run times?
 - Investigate Python Ray and cluster-computing
@@ -87,7 +88,7 @@ Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `.
 python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso
 ```
 
-You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. Unlike realtime runs, the valid time will be appended to each text file. As in the realtime case, these files will automatically time match in GR, this time at the bottom of the hour.
+You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour. 
 
 ### Hodographs
 ![](https://raw.githubusercontent.com/lcarlaw/meso/1.0.0/hodograph_example.png)

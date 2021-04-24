@@ -172,10 +172,10 @@ def write_placefile(arrs, plotinfo, realtime=False):
     """
     parms = plotinfo.keys()
     out_dict = defaultdict(list)
+
     for i in range(len(arrs)):
         arr = arrs[i]
         lon, lat = arr['lons'], arr['lats']
-        save_time = arr['valid_time'].strftime('%Y%m%d%H')
         valid_str = arr['valid_time'].strftime('%H:%MZ %a %b %d %Y')
 
         # Construct the time range string
@@ -208,6 +208,8 @@ def write_placefile(arrs, plotinfo, realtime=False):
     for parm in parms:
         output = out_dict[parm]
         if not realtime:
+            save_time = "%s-%s" % (arrs[0]['valid_time'].strftime('%Y%m%d%H'),
+                                   arrs[-1]['valid_time'].strftime('%Y%m%d%H'))
             out_file = '%s/%s_%s.txt' % (outdir, parm, save_time)
         else:
             out_file = '%s/%s.txt' % (outdir, parm)

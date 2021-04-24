@@ -1,8 +1,8 @@
 /logs
-/output
 **/IO/data
 **junk
 /IO/get_rap.py.original
+/testing
 __pycache__/
 /libs/grib2
 .DS_Store

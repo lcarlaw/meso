@@ -17,7 +17,7 @@ import logging as log
 #ray.shutdown()
 #ray.init(address='auto', _redis_password='5241590000000000')
 
-sigma = 1.75
+sigma = 1.5
 def componentsTo(u,v):
     return (u, v)
 
@@ -151,9 +151,10 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir):
             cape3km[j,i] = mlpcl.b3km
 
             # Effective BWD
-            height_bot = interp.pres(prof, mupcl.pres)
-            height_top = (mupcl.elhght + height_bot) / 2.
+            ebot_hght = interp.to_agl(prof, interp.hght(prof, eff_inflow[0]))
+            height_top = (mupcl.elhght + ebot_hght) / 2.
             ptop = interp.pres(prof, interp.to_msl(prof, height_top))
+
             ebwd_u[j,i], ebwd_v[j,i] = winds.wind_shear(prof, pbot=eff_inflow[0], ptop=ptop)
             eshr[j,i] = utils.mag(ebwd_u[j,i], ebwd_v[j,i])
 
@@ -217,7 +218,7 @@ def sharppy_calcs(**kwargs):
 
     # Apply some data masks
     lr3km = gaussian_filter(lr3km, sigma=sigma)
-    mlcin = gaussian_filter(np.where(mlcape>20, mlcin, 0), sigma=sigma)
+    mlcin = gaussian_filter(np.where(mlcape>35, mlcin, 0), sigma=sigma)
     mucape = gaussian_filter(mucape, sigma=sigma)
     mlcape = gaussian_filter(mlcape, sigma=sigma)
     estp = np.where(np.isnan(estp), 0, estp)
@@ -233,10 +234,10 @@ def sharppy_calcs(**kwargs):
     vectors['rm5_v'] = gaussian_filter(vectors['rm5_v'], sigma=sigma)
     vectors['lm5_u'] = gaussian_filter(vectors['lm5_u'], sigma=sigma)
     vectors['lm5_v'] = gaussian_filter(vectors['lm5_v'], sigma=sigma)
-    vectors['ebwd_u'] = gaussian_filter(vectors['ebwd_u'], sigma=sigma)
-    vectors['ebwd_v'] = gaussian_filter(vectors['ebwd_v'], sigma=sigma)
     vectors['ebwd_u'] = np.where(np.isnan(vectors['ebwd_u']), 0, vectors['ebwd_u'])
     vectors['ebwd_v'] = np.where(np.isnan(vectors['ebwd_v']), 0, vectors['ebwd_v'])
+    vectors['ebwd_u'] = gaussian_filter(vectors['ebwd_u'], sigma=sigma)
+    vectors['ebwd_v'] = gaussian_filter(vectors['ebwd_v'], sigma=sigma)
 
     tts = gaussian_filter(np.where(np.isnan(tts), 0, tts), sigma=sigma)
 
@@ -250,7 +251,7 @@ def sharppy_calcs(**kwargs):
         'mlcin': mlcin * -1,
         'mucape': mucape,
         'vectors': vectors,
-        'tts': tts
+        'tts': tts,
     }
 
     return ret

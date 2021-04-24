@@ -2,6 +2,7 @@
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
+TIMEOUT = 180 # Seconds after which to timeout the data download function
 
 # ----------------------------------------------------------------------------------------
 # Plotting configs
@@ -39,6 +40,7 @@ google_configs = {
 }
 
 thredds_configs = {
+    'RAP-current': 'model-rap130anl',
     'RAP': 'model-rap130anl-old',
     'RUC': 'model-ruc130anl'
 }

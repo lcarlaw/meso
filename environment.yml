@@ -82,6 +82,7 @@ dependencies:
   - pip:
     - geojson==2.5.0
     - geojsoncontour==0.4.0
+    - timeout-decorator
     - pandas==1.2.3
     - pytz==2021.1
     - xarray==0.17.0

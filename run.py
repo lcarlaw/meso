@@ -2,26 +2,17 @@
 
 This replaces the need to specify file and system PATHS via crontab, and instead bundles
 everything within this module's directory.
-
-Currently electing to utilize the HRRR for realtime analysis for a few reasons:
-    - It's available consistently around :53-54 for all 24 cycles/day as opposed to :30
-      for the RAP on its 12z and 00z cycles
-    - Can quickly be "upscaled" to the same 13-km grid spacing as the RAP using WGRIB2
-      to ease computations
-    - The Google Cloud archive for the HRRR is more extensive as it goes back to 2014.
-      The RAP currently only goes back to 2021-02-22
-    - The HRRR dataset on the Google Cloud is very near real time as opposed to the RAP,
-      which seems to be delayed by ~4 hours. This is (potentially) a benefit if both the
-      NOMADS and FTPPRD servers are down, although I'm not sure if that also means the
-      upload feed to Google will also suffer...
 """
 
 import schedule
 import time
 import os
 import logging
+from glob import glob
+from datetime import datetime, timedelta
 
 from utils.cmd import execute
+from utils.timing import timeit
 from configs import PYTHON
 
 script_path = os.path.dirname(os.path.realpath(__file__))
@@ -33,6 +24,7 @@ logging.basicConfig(filename='%s/logs/master.log' % (script_path),
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
+@timeit
 def download_data():
     """Pass arguments to the get_data.py script to download data in realtime from either
     the NOMADS, FTPPRD, or GOOGLE servers
@@ -42,8 +34,26 @@ def download_data():
 
     start = time.time()
     delta = time.time() - start
+
+    target_dt = datetime.utcnow()-timedelta(minutes=51)
+    time_str = target_dt.strftime('%Y-%m-%d/%H')
+
+    # Use the RAP except at 00 and 12z cycles when the HRRR is available first.
+    model_flag = '-m RAP'
+    if target_dt.hour in [12, 0]:
+        model_flag = '-m HRRR'
+
+    data_path = "%s/IO/data" % (script_path)
     while not loop_is_done and delta < 1800:
-        arg = "%s %s/get_data.py -rt -m HRRR" % (PYTHON, script_path)
+        # If we're > 15 minutes delayed, switch to using the HRRR. If the NOMADS/FTPPRD
+        # sites are down, it's possible (likely?) that the HRRR is still being pushed to
+        # the Google Cloud and this will be caught in get_data.py.
+        if delta >= 900: model_flag = '-m HRRR'
+
+        # Download data
+        arg = "%s %s/get_data.py -rt %s -n 2 -p %s" % (PYTHON, script_path, model_flag,
+                                                       data_path)
+        log.info(arg)
         execute(arg)
 
         # Determine download status. If we failed, wait and try again.
@@ -52,10 +62,14 @@ def download_data():
             loop_is_done = True
             log.info("File found and downloaded")
         else:
-            log.info("File not found. Sleeping...")
+            log.info("File not found. Clearing directory and going to bed...")
+            files = glob("%s/%s/*" % (data_path, time_str))
+            for f in files:
+                arg = "rm %s" % (f)
+                log.info(arg)
+                execute(arg)
             time.sleep(60)
         delta = time.time() - start
-
     return loop_is_done
 
 def make_placefiles():

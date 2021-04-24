@@ -1,5 +1,6 @@
 import pygrib
 import numpy as np
+import pandas as pd
 
 import sharptab.winds as winds
 import sharptab.thermo as thermo
@@ -7,7 +8,8 @@ from sharptab.constants import MS2KTS, ZEROCNK
 
 def make_data_monotonic(data):
     """For data in isobaric coordinates, need to ensure pressure monotonically decreases
-    and height monotonically increases with height
+    and height monotonically increases with height. There are still likely edge cases
+    that haven't been tested here.
 
     Parameters:
     -----------
@@ -26,11 +28,25 @@ def make_data_monotonic(data):
     arr_shape = data['tmpc'].shape
     for j in range(arr_shape[1]):
         for i in range(arr_shape[2]):
-            shift = np.where(data['pres'][:,j,i] < data['pres'][0,j,i])[0][0]
+
+            # Small differences in height and pressure arrays such that one might be
+            # just out of sync with the other.
+            shift1 = np.where(data['pres'][:,j,i] < data['pres'][0,j,i])[0][0]
+            shift2 = np.where(data['hght'][:,j,i] > data['hght'][0,j,i])[0][0]
+            shift = np.maximum(shift1, shift2)
             for key in keys:
                 last_val = data[key][-1,j,i]
                 data[key][:,j,i] = np.append(np.insert(data[key][shift:,j,i], 0,
                                              data[key][0,j,i]), [last_val]*(shift-1))
+
+                # This is pretty terrible. Add in some fake data above if we've shifted
+                # data. Since this will be above 100 mb, this won't materially impact our
+                # thermodynamic calcs.
+                if shift > 0:
+                    if key == 'pres':
+                        data[key][-shift:,j,i] = [(1./last_val**2)*10 for i in range(shift)]
+                    elif key == 'hght':
+                        data[key][-shift:,j,i] = [last_val+10*i for i in range(shift)]
 
     remaining_keys = list(np.setdiff1d(full_keys, keys))
     for key in remaining_keys:
@@ -63,12 +79,21 @@ def read_data(filename):
         native = False
         level_type = 'isobaricInhPa'
         heights = grb.select(name='Geopotential Height', typeOfLevel=level_type)
-        rh = grb.select(name='Relative humidity', typeOfLevel=level_type)
         psfc = grb.select(name='Surface pressure')[0].values
         t2m = grb.select(name='2 metre temperature')[0].values
-        td2m = grb.select(name='2 metre dewpoint temperature')[0].values
         u10m = grb.select(name='10 metre U wind component')[0].values
         v10m = grb.select(name='10 metre V wind component')[0].values
+
+        try:
+            rh = grb.select(name='Relative humidity', typeOfLevel=level_type)
+        except ValueError:
+            q = grb.select(name='Specific humidity', typeOfLevel=level_type)
+
+        try:
+            td2m = grb.select(name='2 metre dewpoint temperature')[0].values
+        except ValueError:
+            q2m = grb.select(name='Specific humidity', level=2)[0].values
+            td2m = thermo.dewpoint_from_q(q2m, t2m, psfc)
 
         # Determine how the data is oriented vertically
         if heights[0].values[0,0] > heights[-1].values[0,0]:
@@ -108,8 +133,13 @@ def read_data(filename):
                 wdir[lev], wspd[lev] = winds.wind_vecs(uwind[lev-delta].values,
                                                        vwind[lev-delta].values)
                 hght[lev] = heights[lev-delta].values
-                dwpc[lev] = thermo.dewpoint_from_rh(temperatures[lev-delta].values,
-                                                    rh[lev-delta].values/100)
+                try:
+                    dwpc[lev] = thermo.dewpoint_from_rh(temperatures[lev-delta].values,
+                                                        rh[lev-delta].values/100)
+                except:
+                    dwpc[lev] = thermo.dewpoint_from_q(q[lev].values,
+                                                       temperatures[lev].values,
+                                                       pres[lev])
 
         # Native coordinates
         else:
@@ -129,6 +159,10 @@ def read_data(filename):
     wspd = np.array(wspd[::order], dtype='float64') * MS2KTS
     pres = np.array(pres[::order], dtype='float64')
 
+    model = 'HRRR'
+    if 'rap' in filename:
+        model = 'RAP'
+
     data = {
         'tmpc': tmpc,
         'dwpc': dwpc,
@@ -140,7 +174,8 @@ def read_data(filename):
         'lats': lats,
         'cycle_time': sfc.analDate,
         'valid_time': sfc.validDate,
-        'fhr': sfc.forecastTime
+        'fhr': sfc.forecastTime,
+        'model_name': model,
     }
 
     if not native: data = make_data_monotonic(data)

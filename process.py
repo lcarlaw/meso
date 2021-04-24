@@ -29,34 +29,47 @@ logging.basicConfig(filename='%s/logs/process.log' % (script_path),
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
-def create_hodograph(data, point, storm_motion='right-mover', storm_relative=False):
-    idx = interp.nearest_idx(point, data['lons'], data['lats'])
-    u, v = winds.vec2comp(data['wdir'][:,idx[0][0], idx[0][1]],
-                          data['wspd'][:,idx[0][0], idx[0][1]])
-    hodo_data = {}
-    heights = data['hght'][:,idx[0][0], idx[0][1]] / 1000.
-    mask = np.where(heights < 12)
-    hodo_data['hght'] = heights[mask]
-    hodo_data['uwnd'] = u[mask]
-    hodo_data['vwnd'] = v[mask]
-    hodo_data['valid_time'] = data['valid_time']
-    hodo_data['cycle_time'] = data['cycle_time']
-    hodo_data['fhr'] = data['fhr']
-    hodo_data['lon'], hodo_data['lat'] = point[0][0], point[0][1]
+def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
+                     storm_relative=False):
+    for i in range(len(data)):
+        arr = data[i]
+        idx = interp.nearest_idx(point, arr['lons'], arr['lats'])
+        u, v = winds.vec2comp(arr['wdir'][:,idx[0][0], idx[0][1]],
+                              arr['wspd'][:,idx[0][0], idx[0][1]])
+        hodo_data = {}
+        heights = arr['hght'][:,idx[0][0], idx[0][1]] / 1000.
+        mask = np.where(heights < 12)
+        hodo_data['hght'] = heights[mask]
+        hodo_data['uwnd'] = u[mask]
+        hodo_data['vwnd'] = v[mask]
+        hodo_data['valid_time'] = arr['valid_time']
+        hodo_data['cycle_time'] = arr['cycle_time']
+        hodo_data['fhr'] = arr['fhr']
+        hodo_data['lon'], hodo_data['lat'] = point[0][0], point[0][1]
+        hodo_data['model_name'] = arr['model_name']
 
-    params = hodographs.compute_parameters(hodo_data, storm_motion)
-    plot_hodos.plot_hodograph(hodo_data, params, storm_relative=storm_relative)
+        if sfc_wind:
+            sfc_wind = hodographs.parse_vector(sfc_wind)
+            sfc_wind = winds.vec2comp(sfc_wind[0], sfc_wind[1])
+            hodo_data['uwnd'][0], hodo_data['vwnd'][0] = sfc_wind[0], sfc_wind[1]
+
+        params = hodographs.compute_parameters(hodo_data, storm_motion)
+        plot_hodos.plot_hodograph(hodo_data, params, storm_relative=storm_relative)
 
 @timeit
 def create_placefiles(data, realtime=False):
-    prof_data = {'pres':data['pres'], 'tmpc':data['tmpc'],
-                 'dwpc':data['dwpc'], 'hght':data['hght'],
-                 'wdir':data['wdir'], 'wspd':data['wspd']}
-    log.info("SHARPpy calculations...")
-    arrs = calcs.sharppy_calcs(**prof_data)
-    for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
-        arrs[item] = data[item]
-    plot.write_placefile(arrs, plotinfo, realtime=realtime)
+    out_arrs = []
+    for i in range(len(data)):
+        arr = data[i]
+        prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
+                     'dwpc':arr['dwpc'], 'hght':arr['hght'],
+                     'wdir':arr['wdir'], 'wspd':arr['wspd']}
+        log.info("SHARPpy calculations...")
+        out_arrs.append(calcs.sharppy_calcs(**prof_data))
+        for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
+            out_arrs[-1][item] = arr[item]
+
+    plot.write_placefile(out_arrs, plotinfo, realtime=realtime)
     log.info("---- Finished processing ----")
 
 def find_nearest(dt, datadir):
@@ -107,6 +120,8 @@ if __name__ == '__main__':
                     help='Hodograph plot at a point ex: 35.03/-101.23')
     ap.add_argument('-sr', '--storm-relative', dest='storm_relative', action='store_true',
                     help='Flag to create a Storm Relative hodograph')
+    ap.add_argument('-sw', '--sfc-wind', dest='sfc_wind', help='Surface wind. Form is    \
+                    DDD/SS (e.g. 240/25)')
     ap.add_argument('-m', '--storm-motion', dest='storm_motion',
                     help='Storm motion vector. It takes one of two forms. The first is   \
                           either "BRM" for the Bunkers right mover vector, or "BLM" for  \
@@ -119,7 +134,7 @@ if __name__ == '__main__':
     timestr_fmt = '%Y-%m-%d/%H'
     dt_end = None
     if args.realtime:
-        dt_start = datetime.utcnow()
+        dt_start = datetime.utcnow() - timedelta(minutes=51)
     else:
         if args.time_str is not None:
             dt_start = datetime.strptime(args.time_str, timestr_fmt)
@@ -142,19 +157,30 @@ if __name__ == '__main__':
     else:
         args.data_path = "%s/IO/data" % (script_path)
 
+    # Logic for reading data. If this is a realtime run, look for the three data files
+    # at forecast hours 1, 1.5, and 2. These will only ever be for one model cycle. If
+    # this is an archived run, grab each 1-hour forecast (non-interpolated). Data is
+    # passed in the data list.
+    data = []
     if dt_end is None: dt_end = dt_start
     dt = dt_start
     while dt <= dt_end:
-        filename = find_nearest(dt, args.data_path)
+        filepath = "%s/%s" % (args.data_path, dt.strftime('%Y-%m-%d/%H'))
+        if args.realtime:
+            for grb in ['0_0', '0_50', '1_0']:
+                log.info("Reading sub-hourly file: %s" % (grb))
+                data.append(read.read_data("%s/%s.grib2" % (filepath, grb)))
+        else:
+            filename = find_nearest(dt, args.data_path)
+            data.append(read.read_data(filename))
+            log.info("Closest file in time is: %s" % (filename))
 
-        log.info("Closest file in time is: %s" % (filename))
-        data = read.read_data(filename)
-
-        # Direct us to the plotting/output functions
-        if args.hodo:
-            point = args.hodo.split('/')
-            point = [[float(point[1]), float(point[0])]]
-            create_hodograph(data, point, storm_motion=args.storm_motion,
-                             storm_relative=args.storm_relative)
-        if args.meso: create_placefiles(data, realtime=args.realtime)
         dt += timedelta(hours=1)
+
+    # Direct us to the plotting/output functions.
+    if args.hodo:
+        point = args.hodo.split('/')
+        point = [[float(point[1]), float(point[0])]]
+        create_hodograph(data, point, storm_motion=args.storm_motion,
+                         sfc_wind=args.sfc_wind, storm_relative=args.storm_relative)
+    if args.meso: create_placefiles(data, realtime=args.realtime)

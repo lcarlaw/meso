@@ -35,6 +35,8 @@ conda env create -f environment.yml
 ### Dependencies and config files
 You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file.
 
+Change the `PYTHON` variable to point to the particular anaconda `meso` environment on your filesystem. 
+
 #### Installing the latest WGRIB2 binary
 The latest version of wgrib2 has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. The basic information here is that some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
 
@@ -106,6 +108,6 @@ python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON 
 * `LAT_LON`: Latitude/longitude pair for hodograph creation. Form is `LAT/LON`. Currently only accepts one point at a time.
 * `STORM_MOTION`: The storm motion vector. It can take one of two forms. The first is either `BRM` for the Bunkers right-mover vector or `BLM` for the Bunkers left-mover vector. The second form is `DDD/SS`, where `DDD` is the direction the storm is coming from in degrees, and `SS` is the storm speed in knots. An example might be 240/35 (from the WSW at 35 kts). If the argument is not specified, the default is to use the Bunkers right-mover vector.
 * `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used.
-* `-sr`: Storm-relative flag. If set, hodographs are altered to plot in a storm-relative sense, similar to [Cameron Nixon's work here](https://cameronnixonphotography.wordpress.com/research/the-storm-relative-hodograph/). 
+* `-sr`: Storm-relative flag. If set, hodographs are altered to plot in a storm-relative sense, similar to [Cameron Nixon's work here](https://cameronnixonphotography.wordpress.com/research/the-storm-relative-hodograph/).
 
 This plotting is done using modified code from Tim Supinie's [vad-plotter repo](https://github.com/tsupinie/vad-plotter).

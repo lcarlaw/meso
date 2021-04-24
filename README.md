@@ -35,7 +35,7 @@ conda env create -f environment.yml
 You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file.
 
 #### Installing the latest WGRIB2 binary
-The latest version of wgrib2 has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. The basic information here is that some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine.
+The latest version of wgrib2 has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. The basic information here is that some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
 
 ```
 brew install gcc@9
@@ -74,7 +74,7 @@ Important log files will be located in the `logs` directory. These can all be mo
 ### Download the model data
 The `get_data.py` script will download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. 1-hour forecasts were chosen over 0-hour analyses to recreate what would have been available to forecasters in real time. `get_data.py` will accept a single time or a time range.  
 
-For this example, we'll download data during the August 10th, 2020 Midwest Derecho:
+For this example, we'll download HRRR data during the August 10th, 2020 Midwest Derecho:
 
 ```
 python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR
@@ -95,7 +95,8 @@ You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hop
 Usage to create hodographs is as follows:
 
 ```
-python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON ] [ -m STORM_MOTION ] [ -sw SFC_WIND ]
+python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON ]
+                  [ -m STORM_MOTION ] [ -sw SFC_WIND ]
 ```
 
 * `START_TIME`: Initial model cycle time (this will be a 1-hr forecast) in the form `YYYY-mm-dd/HH`.

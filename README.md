@@ -88,7 +88,7 @@ Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `.
 python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso
 ```
 
-You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour. 
+You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour.
 
 ### Hodographs
 ![](https://raw.githubusercontent.com/lcarlaw/meso/1.0.0/hodograph_example.png)
@@ -97,7 +97,7 @@ Usage to create hodographs is as follows:
 
 ```
 python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON ]
-                  [ -m STORM_MOTION ] [ -sw SFC_WIND ]
+                  [ -m STORM_MOTION ] [ -sw SFC_WIND ] [ -sr ]
 ```
 
 * `START_TIME`: Initial model cycle time (this will be a 1-hr forecast) in the form `YYYY-mm-dd/HH`.
@@ -106,5 +106,6 @@ python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON 
 * `LAT_LON`: Latitude/longitude pair for hodograph creation. Form is `LAT/LON`. Currently only accepts one point at a time.
 * `STORM_MOTION`: The storm motion vector. It can take one of two forms. The first is either `BRM` for the Bunkers right-mover vector or `BLM` for the Bunkers left-mover vector. The second form is `DDD/SS`, where `DDD` is the direction the storm is coming from in degrees, and `SS` is the storm speed in knots. An example might be 240/35 (from the WSW at 35 kts). If the argument is not specified, the default is to use the Bunkers right-mover vector.
 * `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used.
+* `-sr`: Storm-relative flag. If set, hodographs are altered to plot in a storm-relative sense, similar to [Cameron Nixon's work here](https://cameronnixonphotography.wordpress.com/research/the-storm-relative-hodograph/). 
 
 This plotting is done using modified code from Tim Supinie's [vad-plotter repo](https://github.com/tsupinie/vad-plotter).

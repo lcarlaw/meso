@@ -330,4 +330,5 @@ if __name__ == '__main__':
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(status))
 
     # If this is realtime, interpolate the 1 and 2-hour forecasts in time
-    if status and args.realtime and args.num_hours == 2: interpolate_in_time(download_dir)
+    if status and args.realtime and int(args.num_hours) == 2:
+        interpolate_in_time(download_dir)

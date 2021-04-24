@@ -148,6 +148,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
     if data_path is None: data_path = '%s/data' % (script_path)
 
     SOURCES = list(sources.keys())
+
     fhrs = np.arange(1, int(num_hours)+1, 1)
     downloads = {}
     urls = {}
@@ -189,7 +190,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                     # use of the HRRR here and upscaling to 13 km, in the event NOMADS
                     # and the ftpprd site are down.
                     model_name = google_configs[model]
-                    filename = "hrrr.t%sz.wrfnat%s.grib2" % (str(dt.hour).zfill(2),
+                    filename = "hrrr.t%sz.wrfnatf%s.grib2" % (str(dt.hour).zfill(2),
                                                               str(fhr).zfill(2))
                     url = "%s/%s/%s.%s/conus/%s" % (base_url, model_name, model.lower(),
                                                  dt.strftime('%Y%m%d'), filename)
@@ -306,11 +307,17 @@ if __name__ == '__main__':
 
     # Warning if user has selected archived (non-native coordinate) RAP data
     if args.model == 'RAP' and not args.realtime:
-        warn = """*WARNING*: Archived RAP data is only available on isobaric coordinates.
-           Due to the sensitivity of mixed-layer and most-unstable parcel
-           calculations to near-surface vertical resolution, this coarse
-           dataset may result in erroneous thermodynamic calculations. Are
-           you sure you want to proceed? [y|N]"""
+        warn = """
+        ******************************************************************
+        *                                                                *
+        * [INFO] RAP data is only available on isobaric coordinates.     *
+        * Due to the sensitivity of mixed-layer and most-unstable parcel *
+        * calculations to near-surface vertical resolution, this dataset *
+        * may result in less accurate thermodynamic calculations. Are    *
+        * you sure you want to proceed? [y|N]                            *
+        *                                                                *
+        ******************************************************************
+        """
         print(warn)
         resp = input()
         if resp not in ['y', 'Y', 'yes'] or resp in ['n', 'N']: sys.exit(1)

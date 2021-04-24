@@ -344,8 +344,9 @@ def plot_hodograph(data, parameters, storm_relative=False):
 
     loc_str = "%s, %s" % (round(data['lon'], 2), round(data['lat'], 2))
     valid_str = data['valid_time'].strftime('%HZ %a %b %d %Y')
-    time_str = "%sZ RAP/HRRR | F%s Valid: %s" % (str(data['cycle_time'].hour).zfill(2),
-                                                 str(data['fhr']).zfill(2), valid_str)
+    time_str = "%sZ %s | F%s Valid: %s" % (str(data['cycle_time'].hour).zfill(2),
+                                           data['model_name'],
+                                           str(data['fhr']).zfill(2), valid_str)
     pylab.text(0, 1.01, "%s | %s" % (time_str, loc_str), transform=pylab.gca().transAxes,
                ha='left', va='bottom', fontsize=10, fontweight='bold', color='#fafafa')
 

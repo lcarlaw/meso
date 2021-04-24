@@ -46,6 +46,7 @@ def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
         hodo_data['cycle_time'] = arr['cycle_time']
         hodo_data['fhr'] = arr['fhr']
         hodo_data['lon'], hodo_data['lat'] = point[0][0], point[0][1]
+        hodo_data['model_name'] = arr['model_name']
 
         if sfc_wind:
             sfc_wind = hodographs.parse_vector(sfc_wind)
@@ -67,7 +68,8 @@ def create_placefiles(data, realtime=False):
         out_arrs.append(calcs.sharppy_calcs(**prof_data))
         for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
             out_arrs[-1][item] = arr[item]
-    plot.write_placefile(out_arrs, plotinfo, realtime=realtime)
+            
+        plot.write_placefile(out_arrs, plotinfo, realtime=realtime)
     log.info("---- Finished processing ----")
 
 def find_nearest(dt, datadir):

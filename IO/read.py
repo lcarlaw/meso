@@ -1,6 +1,14 @@
+"""
+Functions for reading in model data. Currently only GRIB2 data is supported, although some
+GRIB1 files may work. If data is stored on isobaric coordinates, 2- and 10-m data are
+inserted at the surface and checks are applied to ensure pressure (heights) monotonically
+decrease (increase).
+
+"""
 import pygrib
 import numpy as np
 import pandas as pd
+import logging
 
 import sharptab.winds as winds
 import sharptab.thermo as thermo
@@ -22,6 +30,7 @@ def make_data_monotonic(data):
         has been shifted.
 
     """
+    logging.info("Re-ordering data for monotonic heights and pressure")
     original_data = data
     full_keys = list(original_data.keys())
     keys = ['tmpc', 'dwpc', 'hght', 'wdir', 'wspd', 'pres']
@@ -39,7 +48,7 @@ def make_data_monotonic(data):
                 data[key][:,j,i] = np.append(np.insert(data[key][shift:,j,i], 0,
                                              data[key][0,j,i]), [last_val]*(shift-1))
 
-                # This is pretty terrible. Add in some fake data above if we've shifted
+                # This is a terrible hack. Add in some fake data above if we've shifted
                 # data. Since this will be above 100 mb, this won't materially impact our
                 # thermodynamic calcs.
                 if shift > 0:
@@ -54,6 +63,7 @@ def make_data_monotonic(data):
     return data
 
 def read_data(filename):
+    logging.info("Reading file %s" % (filename))
     grb = pygrib.open(filename)
     sfc = grb.select(name='Orography')[0]
     lats, lons = sfc.latlons()
@@ -74,7 +84,7 @@ def read_data(filename):
 
     # If this is isobaric data, we need to "drop in" the surface fields and mask out
     # data that's below the ground. Additionally, we need to check if the data is stored
-    # top-down (changes with certain RAP cycles)
+    # top-down (this changes with certain RAP versions/epochs)
     elif temperatures.typeOfLevel == 'isobaricInhPa':
         native = False
         level_type = 'isobaricInhPa'
@@ -107,7 +117,12 @@ def read_data(filename):
     arr_shape = heights[0].values.shape
     num_levels = len(heights)
 
-    if not native: num_levels += 1
+    if not native:
+        logging.info("Data is in ISOBARIC coordinates")
+        num_levels += 1
+    else:
+        logging.info("Data is in HYBRID-SIGMA coordinates")
+
     hght = np.zeros((num_levels, arr_shape[0], arr_shape[1]))
     tmpc = np.full_like(hght, 0)
     pres = np.full_like(hght, 0)

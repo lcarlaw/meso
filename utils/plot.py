@@ -6,17 +6,18 @@ from datetime import timedelta
 from collections import defaultdict
 
 import sharptab.winds as winds
-from utils.plot_configs import metadata as meta
+#from utils.plot_configs import metadata as meta
+#from configs import plotparams as meta
+from configs import SCALAR_PARAMS, VECTOR_PARAMS, barbconfigs, contourconfigs, PLOTCONFIGS
+PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
 
 import os
 script_path = os.path.dirname(os.path.realpath(__file__))
 parent_path = os.path.dirname(script_path)
 
-ALPHA = 90
 outdir = "%s/output" % (parent_path)
 if not os.path.exists(outdir): os.makedirs(outdir)
 
-WINDICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
 def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     """Contour plot using geojsoncontour.
 
@@ -55,7 +56,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
     levels = kwargs.get('levels')
     colors = kwargs.get('colors')
-    plotinfo = kwargs.get('plotinfo', 'None')
+    plotinfo = kwargs.get('varname', 'None')
     if levels is not None and colors is not None:
         c = ax.contour(lon, lat, data, levels, colors=colors)
     else:
@@ -63,9 +64,12 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
 
     out = []
-    out.append('Title: %s %s\n' % (plotinfo, time_str))
+    out.append('Title: %s | %s\n' % (plotinfo, time_str))
     out.append('RefreshSeconds: 60\n')
+    out.append('Font: 1, 14, 1, "Arial"\n')
     out.append('TimeRange: %s\n' % (timerange_str))
+
+    clabs = defaultdict(list) # Store contour labels
     for feature in geojson['features']:
         coords = feature['geometry']['coordinates']
         level = '%s' % (feature['properties']['level-value'])
@@ -82,12 +86,24 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
         rgb = hex2rgb(feature['properties']['stroke'])
         out.append('Color: %s 255\n' % (' '.join(rgb)))
         out.append('Line: %s, 0, "%s"\n' % (linewidth, level))
+
+        KNT = 0
         for coord in coords:
             out.append(' %s, %s\n' % (coord[1], coord[0]))
+            if KNT % 25 == 0: clabs[level].append([coord[1], coord[0]])
+            KNT += 1
         out.append('End:\n\n')
+
+    # Contour labels
+    for lev in clabs.keys():
+        for val in clabs[lev]:
+            out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], int(float(lev))))
+
     plt.close(fig)
     return out
 
+'''
+# Kill this one for now. Figure out rotation order for placefile polygons
 def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     """Contour-filled plot using geojsoncontour.
 
@@ -124,7 +140,7 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
 
     levels = kwargs.get('levels')
     colors = kwargs.get('colors')
-    plotinfo = kwargs.get('plotinfo', 'None')
+    plotinfo = kwargs.get('varname', 'None')
 
     c = ax.contourf(lon, lat, data, levels, colors=colors)
     geojson = json.loads(geojsoncontour.contourf_to_geojson(contourf=c, ndigits=8))
@@ -150,8 +166,9 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
             out.append('\n')
     plt.close(fig)
     return out
+'''
 
-def write_placefile(arrs, plotinfo, realtime=False):
+def write_placefile(arrs, realtime=False):
     """Main function controlling the plotting of GR2/Analyst-readable placefiles. Called
     by the primary run.py script.
 
@@ -170,7 +187,8 @@ def write_placefile(arrs, plotinfo, realtime=False):
         filename.
 
     """
-    parms = plotinfo.keys()
+    #parms = plotinfo.keys()
+    parms = list(SCALAR_PARAMS.keys()) + list(VECTOR_PARAMS.keys())
     out_dict = defaultdict(list)
 
     for i in range(len(arrs)):
@@ -188,20 +206,35 @@ def write_placefile(arrs, plotinfo, realtime=False):
 
         timerange_str = "%s %s" % (start.strftime('%Y-%m-%dT%H:%M:%SZ'),
                                    end.strftime('%Y-%m-%dT%H:%M:%SZ'))
-        time_str = "%sZ HRRR | Valid: %s" % (str(arr['cycle_time'].hour).zfill(2),
-                                             valid_str)
+        time_str = "%sZ RAP" % (str(arr['cycle_time'].hour).zfill(2))
         for parm in parms:
-            meta[parm]['plotinfo'] = plotinfo[parm]
-            plot_type = meta[parm]['plot_type']
+            matches = [s for s in arr.keys() if parm in s]
+            if len(matches) > 1:
+                plot_type = 'barb'
+                base_configs = barbconfigs
+            else:
+                plot_type = 'contour'
+                base_configs = contourconfigs
+
+            # Add any user-requested ploting configurations to the base. Add the variable
+            # name to the configuration dictionary.
+            configs = base_configs.copy()
+            if parm in PLOTCONFIGS:
+                config_overrides = PLOTCONFIGS[parm]
+                configs.update(config_overrides)
+            configs['varname'] = PARAMS[parm]
+
             if plot_type == 'contour':
-                out = contour(lon, lat, arr[parm], time_str, timerange_str, **meta[parm])
-            elif plot_type == 'contourf':
-                out = contourf(lon, lat, arr[parm], time_str, timerange_str, **meta[parm])
+                out = contour(lon, lat, arr[parm], time_str, timerange_str, **configs)
+            #elif plot_type == 'contourf':
+            #    out = contourf(lon, lat, arr[parm], time_str, timerange_str, **configs)
             elif plot_type == 'barb':
-                out = barbs(lon, lat, arr['vectors'], parm, time_str, timerange_str,
-                            **meta[parm])
+                out = barbs(lon, lat, arr[parm+'_u'], arr[parm+'_v'], parm, time_str,
+                            timerange_str,
+                            **configs)
             else:
                 raise ValueError("%s is an invalid plot_type entry" % (plot_type))
+
 
             out_dict[parm].extend(out)
 
@@ -215,26 +248,27 @@ def write_placefile(arrs, plotinfo, realtime=False):
             out_file = '%s/%s.txt' % (outdir, parm)
         with open(out_file, 'w') as f: f.write("".join(output))
 
-def barbs(lon, lat, data, parm, time_str, timerange_str, **kwargs):
-    plotinfo = kwargs.get('plotinfo', 'None')
+def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
+    iconfile = kwargs.get('windicons', 'https://jupiter-dev.ngrok.io/windicons.png')
+    plotinfo = kwargs.get('varname', 'None')
     skip = kwargs.get('skip', 6)
     out = []
     out.append('Title: %s %s\n' % (plotinfo, time_str))
     out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     out.append('Color: 255 255 255\n')
-    out.append('IconFile: 1, 28, 28, 3, 28, "%s"\n' % (WINDICONS))
+    out.append('IconFile: 1, 28, 28, 3, 28, "%s"\n' % (iconfile))
     out.append('Font: 1, 10, 4, "Arial"\n\n')
-    for j in range(data[parm + '_u'].shape[0])[::skip]:
-        for i in range(data[parm + '_u'].shape[1])[::skip]:
-            wdir, wspd = winds.comp2vec(float(data[parm + '_u'][j,i]),
-                                        float(data[parm + '_v'][j,i]))
-            if wspd > 14.5:
+    for j in range(U.shape[0])[::skip]:
+        for i in range(V.shape[1])[::skip]:
+            wdir, wspd = winds.comp2vec(float(U[j,i]),
+                                        float(V[j,i]))
+            if wspd > 0:
                 wspd_rounded = 5 * round(wspd/5)
-                numref = str(int(wspd_rounded//5))
+                numref = int(wspd_rounded//5)
                 out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')
                 out.append('  Threshold: 999\n')
-                out.append('  Icon: 0,0,%s,1,%s,%s\n' % (wdir, numref, round(wspd,1)))
+                out.append('  Icon: 0,0,%s,1,%s,%s\n' % (wdir, np.clip(numref,1,999), round(wspd,1)))
                 out.append('End:\n\n')
     return out
 

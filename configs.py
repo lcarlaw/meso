@@ -1,45 +1,116 @@
-# The USER must edit these file paths
+from collections import OrderedDict
+##########################################################################################
+# User configurations
+#
+# Adjust the following variables to point to Python, WGRIB2, and WGET
+# executables on the filesystem. See README for notes on WGET requirements.
+##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
-TIMEOUT = 180 # Seconds after which to timeout the data download function
 
-# ----------------------------------------------------------------------------------------
-# Plotting configs
-# ----------------------------------------------------------------------------------------
-plotinfo = {
-    'cape3km': '0-3 km MLCAPE (J/kg)',
-    'estp': 'Significant Tornado (Effective)',
-    'lr3km_cf': '0-3 km Lapse Rate (Filled > 6 C/km)',
-    'lr3km': '0-3 km Lapse Rate (> 7 C/km)',
-    'mucape': 'Most-unstable CAPE (J/kg)',
-    'mlcape': 'Mixed-layer CAPE (J/kg)',
-    'mlcin' : 'Mixed-layer CIN (J/kg)',
+##########################################################################################
+# Plotting configurations
+##########################################################################################
+SCALAR_PARAMS = {
     'esrh': 'Effective Storm-Relative Helicity',
-    'tts': 'Tornadic Tilting and Stretching Parameter',
-    'shr3': '0-3 km shear vector (kt)',
-    'ebwd': 'Effective bulk shear (kt)',
-    'rm5': 'Right Bunkers motion vector',
-    'lm5': 'Left Bunkers motion vector',
+    'mucape': 'Most-Unstable CAPE (J/kg)',
+    'mlcin': 'Mixed-Layer CIN (J/kg)',
+    'mlcape': 'Mixed-Layer CAPE (J/kg)',
+    'cape3km': '0-3 km MLCAPE (J/kg)',
+    'estp': 'Effective SigTor Parameter'
 }
 
-# ----------------------------------------------------------------------------------------
-# Download configs. You likely won't need (or want) to change these. Priority is set by
-# the order of the dictionary keys in the sources variable.
-# ----------------------------------------------------------------------------------------
-sources = {
+VECTOR_PARAMS = {
+    'ebwd': 'Effective Bulk Shear (kt)',
+    'shr1': 'Surface to 1 km shear (kt)',
+    'shr3': 'Surface to 3 km shear (kt)',
+    'devtor': 'Deviant Tornado Motion (kt)',
+    'rm5': 'Bunkers Right Motion Vectors',
+    'lm5': 'Bunkers Left Motion Vectors',
+}
+
+##########################################################################################
+# User overrides for plotting configurations
+##########################################################################################
+PLOTCONFIGS = {
+    'esrh': {
+        'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
+        'levels': [50, 100, 200, 300, 400, 500],
+        'linewidths': [1, 2, 3, 3, 4, 4, 4]
+    },
+    'shr1': {
+        'windicons': 'http://jupiter-dev.ngrok.io/shr1icons.png',
+    },
+    'mucape': {
+        'colors': ['#dd564e', '#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
+                   '#bb2d1d', '#841f18', '#841f18'],
+        'levels': [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000],
+        'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4]
+    },
+    'mlcape': {
+        'colors': ['#dd564e', '#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
+                   '#bb2d1d', '#841f18', '#841f18'],
+        'levels': [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000],
+        'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4]
+    },
+    'cape3km': {
+        'colors': ['#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
+                   '#bb2d1d', '#841f18', '#841f18'],
+        'levels': [25, 50, 75, 100, 125, 150, 300, 500],
+        'linewidths': [1, 2, 3, 3, 3, 3, 4, 4]
+    },
+    'mlcin': {
+        'colors': ['#6beaea', '#4eb0e7', '#0000cf'],
+        'levels': [25, 75, 150, 999],
+    },
+    'estp': {
+        'levels': [0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        'colors': ['#ec904a', '#ec904a', '#ec904a', '#e94639', '#e94639', '#c23f34',
+                   '#c23f34', '#841f18', '#841f18', '#841f18', '#957cca', '957cca'],
+        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4]
+    },
+}
+
+##########################################################################################
+# Base contour and wind barb configurations. These will be overriden by any corresponding
+# entries in the PLOTCONFIGS dictionary
+##########################################################################################
+barbconfigs = {
+    'skip': 4,
+    'windicons': 'https://jupiter-dev.ngrok.io/windicons.png'
+}
+
+contourconfigs = {
+    'colors': ['#dd564e', '#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
+               '#bb2d1d', '#841f18', '#841f18'],
+    'levels': [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000],
+    'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4]
+}
+
+##########################################################################################
+# Download configurations
+#
+# You likely won't need (or want) to change these. Download Priority is set by
+# the order of the dictionary keys in the DATA_SOURCES variable.
+##########################################################################################
+TIMEOUT = 180 # Seconds after which to timeout the data download function
+MINSIZE = 10 # Grib files under this size (MB) will result in a download error
+SIGMA = 1.5  # For smoothing function. Larger = more smoothing, but amplitude loss
+
+DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',
     'GOOGLE': 'https://storage.googleapis.com',
     'FTPPRD': 'https://ftpprd.ncep.noaa.gov/data/nccf/com',
     'THREDDS': 'https://www.ncei.noaa.gov/thredds/fileServer',
-}
+})
 
-google_configs = {
+GOOGLE_CONFIGS = {
     'RAP': 'rapid-refresh',
     'HRRR': 'high-resolution-rapid-refresh'
 }
 
-thredds_configs = {
+THREDDS_CONFIGS = {
     'RAP-current': 'model-rap130anl',
     'RAP': 'model-rap130anl-old',
     'RUC': 'model-ruc130anl'

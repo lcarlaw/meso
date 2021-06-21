@@ -38,7 +38,7 @@ You will need working `wget` and `wgrib2` binaries on your filesystem. Add these
 Change the `PYTHON` variable to point to the particular anaconda `meso` environment on your filesystem.
 
 #### Installing the latest WGRIB2 binary
-The latest version of wgrib2 is necessary for time interpolations and for decoding older version of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. The basic information here is that some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
+The latest version of wgrib2 is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
 
 ```
 brew install gcc@9
@@ -71,6 +71,9 @@ python run.py
 ```
 
 Important log files will be located in the `logs` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
+
+##  Adding parameters
+Parameters to be output as placefiles are defined in the config file in the `PARAMS` variable. Each key in `PARAMS` must have a corresponding module (`.py`) file in the `parameters` directory where the calculation logic is spelled out within the `execute` function. A SHARPpy profile is passed by the main calculation script to each module file. 
 
 ## Creating an archived case
 

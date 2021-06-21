@@ -1,15 +1,24 @@
 metadata = {
+    'devtor': {
+        'plot_type': 'barb',
+        'skip': 2,
+    },
+
     'shr3': {
+        'plot_type': 'barb',
+        'skip': 4,
+    },
+    'shr1': {
         'plot_type': 'barb',
         'skip': 4,
     },
     'rm5': {
         'plot_type': 'barb',
-        'skip': 4,
+        'skip': 2,
     },
     'lm5': {
         'plot_type': 'barb',
-        'skip': 4,
+        'skip': 2,
     },
     'ebwd': {
         'plot_type': 'barb',
@@ -37,8 +46,8 @@ metadata = {
     },
     'mlcin': {
         'plot_type': 'contourf',
-        'colors': ['#6beaea', '#4eb0e7'],
-        'levels': [25, 100, 999],
+        'colors': ['#6beaea', '#4eb0e7', '#0000cf'],
+        'levels': [25, 75, 150, 999],
     },
     'cape3km': {
         'plot_type': 'contour',

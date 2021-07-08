@@ -1,3 +1,6 @@
+"""Functions used during the parameter calculation steps. See sharptab.calcs.
+"""
+
 from numba import njit
 import numpy as np
 

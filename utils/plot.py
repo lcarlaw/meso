@@ -90,7 +90,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
         KNT = 0
         for coord in coords:
             out.append(' %s, %s\n' % (coord[1], coord[0]))
-            if KNT % 25 == 0: clabs[level].append([coord[1], coord[0]])
+            if KNT % 30 == 0: clabs[level].append([coord[1], coord[0]])
             KNT += 1
         out.append('End:\n\n')
 

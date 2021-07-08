@@ -6,7 +6,6 @@ import argparse
 from multiprocessing import Pool, freeze_support
 import pandas as pd
 import numpy as np
-
 import timeout_decorator
 
 from configs import WGRIB2, WGET, TIMEOUT, MINSIZE
@@ -27,7 +26,15 @@ log = logging.getLogger()
 log.setLevel(logging.INFO)
 
 def interpolate_in_time(download_dir):
-    """Interpolate 1 and 2 hour forecasts in time every 15 minutes"""
+    """Interpolate 1 and 2 hour forecasts in time every 15 minutes using WGRIB2
+
+    Parameters:
+    -----------
+    download_dir : string
+        Directory containing downloaded grib2 files
+
+    """
+
     files = sorted(glob(download_dir + '/*.reduced'))
     arg = "%s %s %s %s %s %s %s %s/%s" % (
          WGRIB2, files[0], '-rpn sto_1 -import_grib', files[1],
@@ -50,6 +57,7 @@ def test_url(url):
     ----------
     url : string
         URL we're testing for
+
     """
     try:
         ru = requests.head(url, timeout=1)
@@ -61,6 +69,13 @@ def test_url(url):
 def execute_regrid(full_name):
     """
     Performs subsetting of the original data files to help speed up plotting routines.
+    The `grid_info` variable is specified in the configuration file.
+
+    Parameters:
+    -----------
+    full_name : string
+        Filepath and filename
+
     """
 
     save_name = "%s.reduced" % (full_name)
@@ -82,7 +97,16 @@ def execute_regrid(full_name):
     execute("rm %s" % (full_name))
 
 def execute_download(full_name, url):
-    """Download the files in parallel"""
+    """Download the requested files
+
+    Parameters:
+    -----------
+    full_name : string
+        Filepath and filename
+    url : string
+        URL to requested file
+
+    """
 
     arg2 = None
     if 'storage.googleapis.com' in url:
@@ -112,7 +136,7 @@ def make_dir(run_time, data_path):
     if not os.path.exists(download_dir): os.makedirs(download_dir)
     return download_dir
 
-# The goal is to catch hung download processes here.
+# The goal is to catch hung download processes with this decorator function.
 @timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
 def download_data(dts, data_path, model, num_hours=None, realtime=True):
     """Function called by main() to control download of model data.
@@ -228,6 +252,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
             log.info("Target file: %s" % (full_name))
             expected_files += 1
 
+    # Download requested files via separate processes
     if len(downloads.keys()) >= 1:
         my_pool = Pool(np.clip(1, len(downloads), 4))
         my_pool.starmap(execute_download, zip(downloads.keys(), downloads.values()))
@@ -252,6 +277,8 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
     if knt == expected_files:
         return_status = True
         log.info("Success downloading files")
+    else:
+        log.info("Some requested data was not downloaded")
 
     return return_status, download_dir
 
@@ -264,8 +291,8 @@ if __name__ == '__main__':
     ap.add_argument('-m', '--model', dest='model', help='RAP or HRRR. Default is RAP')
     ap.add_argument('-n', '--num-hours', dest='num_hours', help='Number of forecast      \
                     hours to download. Default is 1 hour')
-    ap.add_argument('-t', '--time-str', dest='time_str', help='Valid time for analysis of\
-                    a single hour. Form is YYYY-MM-DD/HH. No -s or -e flags taken.')
+    ap.add_argument('-t', '--time-str', dest='time_str', help='For an individual cycle.  \
+                    Form is YYYY-MM-DD/HH. No -s or -e flags taken.')
     ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
                     multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
                     "-e" flag. No -t flag is taken.')
@@ -284,7 +311,7 @@ if __name__ == '__main__':
             target = datetime.utcnow() - timedelta(minutes=51)
             cycle_dt = [datetime(target.year, target.month, target.day, target.hour)]
         else:
-            cycle_dt = [datetime.strptime(args.time_str, timestr_fmt)-timedelta(hours=1)]
+            cycle_dt = [datetime.strptime(args.time_str, timestr_fmt)]
 
     elif args.start_time is not None and args.end_time is not None:
         start_dt = datetime.strptime(args.start_time, timestr_fmt)

@@ -19,7 +19,6 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 - Build in automated checks for hung processes in the `run.py` driver
 - Change the `-s, -e, -t` times to be expected valid times instead of cycle run times?
 - Investigate Python Ray and cluster-computing
-- Global Interpreter Lock (GIL) bottlenecks in numba?
 - Support for CUDA/GPU-based calculations for further speed increases?  
 
 ## Basic Setup Notes
@@ -42,7 +41,7 @@ The latest version of wgrib2 is necessary for time interpolations and for decodi
 
 ```
 brew install gcc@9
-cd libs
+cd etc
 tar -xvzf wgrib2.tgz.v3.0.2
 cd grib2
 export CC=/usr/local/bin/gcc-9
@@ -73,7 +72,7 @@ python run.py
 Important log files will be located in the `logs` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
 
 ##  Adding parameters
-Parameters to be output as placefiles are defined in the config file in the `PARAMS` variable. Each key in `PARAMS` must have a corresponding module (`.py`) file in the `parameters` directory where the calculation logic is spelled out within the `execute` function. A SHARPpy profile is passed by the main calculation script to each module file. 
+Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary. Important calculation functions are stored in `sharptab.calcs` and `sharptab.derived`.
 
 ## Creating an archived case
 
@@ -96,7 +95,7 @@ python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso
 You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour.
 
 ### Hodographs
-![](https://raw.githubusercontent.com/lcarlaw/meso/1.0.0/hodograph_example.png)
+![](https://github.com/lcarlaw/meso/blob/1.0.1/hodograph_example.png)
 
 Usage to create hodographs is as follows:
 

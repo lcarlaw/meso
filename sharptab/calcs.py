@@ -21,10 +21,14 @@ def filter(data):
 
     Parameters:
     -----------
-    data: list
+    data: list of dictionaries
         A list of dictionaries, with each entry corresponding to a model time step or
         forecast hour, containing the data to be filtered and smoothed
 
+    Returns:
+    --------
+    data: list of dictionaries
+        Filtered and smoothed data. Same form as input.
     """
 
     for t in range(len(data)):
@@ -89,6 +93,7 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
     --------
     d : Numba typed Dictionary
         Dictionary containing the derived values. [Key,j,i]
+
     """
 
     # Declare 'jit-able' dictionary and fill it with empty arrays
@@ -120,7 +125,6 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
             if 'cape3km' in SCALARS: d['cape3km'][j,i] = mlpcl.b3km
             if 'esrh' in SCALARS: d['esrh'][j,i] = derived.esrh(prof, eff_inflow)
 
-
             # Vectors: returned as (u,v) tuples
             if 'ebwd' in VECTORS:
                 d['ebwd_u'][j,i], d['ebwd_v'][j,i] = derived.ebwd(prof, mupcl, eff_inflow)
@@ -146,8 +150,9 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
 
 def sharppy_calcs(**kwargs):
     """
-    Perform the parcel lifting and calculations. Leverages multiprocessing.Pool to split
-    parameters across processes
+    Perform the parcel lifting and calculations. Leverages numba's automatic parallel
+    processing and prange.
+
     """
 
     tmpc = kwargs.get('tmpc')
@@ -157,8 +162,9 @@ def sharppy_calcs(**kwargs):
     wspd = kwargs.get('wspd')
     pres = kwargs.get('pres')
 
+    # Convert list of dictionary keys to numba typed list.
     ret = worker(pres, tmpc, hght, dwpc, wspd, wdir, List(SCALAR_PARAMS.keys()),
-                  List(VECTOR_PARAMS.keys()))
+                 List(VECTOR_PARAMS.keys()))
 
     # Converison back to a 'normal' Python dictionary
     output = {}

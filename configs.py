@@ -36,23 +36,23 @@ VECTOR_PARAMS = {
 PLOTCONFIGS = {
     'esrh': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
-        'levels': [50, 100, 200, 300, 400, 500],
-        'linewidths': [1, 2, 3, 3, 4, 4, 4]
+        'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],
+        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
     },
     'shr1': {
         'windicons': 'http://jupiter-dev.ngrok.io/shr1icons.png',
     },
     'mucape': {
-        'colors': ['#dd564e', '#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
-                   '#bb2d1d', '#841f18', '#841f18'],
+        'colors': ['#ea908c', '#ea908c', '#da453a', '#da453a', '#da453a', '#c03c32',
+                   '#c03c32', '#c03c32', '#c03c32'],
         'levels': [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000],
-        'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4]
+        'linewidths': [1, 1, 1, 2, 2, 3, 3, 3, 3]
     },
     'mlcape': {
-        'colors': ['#dd564e', '#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
-                   '#bb2d1d', '#841f18', '#841f18'],
-        'levels': [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000],
-        'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4]
+        'colors': ['#ea908c', '#ea908c', '#da453a', '#da453a', '#da453a', '#c03c32',
+                   '#c03c32', '#c03c32', '#c03c32'],
+        'levels': [100, 250, 500, 1000, 2000, 2500, 3000, 3500, 4000],
+        'linewidths': [1, 1, 1, 2, 2, 3, 3, 3, 3]
     },
     'cape3km': {
         'colors': ['#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
@@ -77,7 +77,7 @@ PLOTCONFIGS = {
 # entries in the PLOTCONFIGS dictionary
 ##########################################################################################
 barbconfigs = {
-    'skip': 4,
+    'skip': 5,
     'windicons': 'https://jupiter-dev.ngrok.io/windicons.png'
 }
 

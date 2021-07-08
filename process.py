@@ -73,24 +73,7 @@ def create_placefiles(data, realtime=False):
 
     # Final filter (smoothing and masking logic) and plotting/placefiles.
     plot_arrays = calcs.filter(plot_arrays)
-    plot.write_placefile(plot_arrays, realtime=True)
-
-'''
-def create_placefiles(data, realtime=False):
-    out_arrs = []
-    for i in range(len(data)):
-        arr = data[i]
-        prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
-                     'dwpc':arr['dwpc'], 'hght':arr['hght'],
-                     'wdir':arr['wdir'], 'wspd':arr['wspd']}
-        log.info('SHARPpy calculations...')
-        out_arrs.append(calcs.sharppy_calcs(**prof_data))
-        for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
-            out_arrs[-1][item] = arr[item]
-    #plot.write_placefile(out_arrs, PARAMS, realtime=True)
-    plot.write_placefile(out_arrs, realtime=True)
-    log.info("---- Finished processing ----")
-'''
+    plot.write_placefile(plot_arrays, realtime=realtime)
 
 def query_files(filepath):
     """

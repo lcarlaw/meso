@@ -50,9 +50,9 @@ export FC=gfortran-9
 make -j4
 ```
 
-If `make` is successful, you should have an executable `wgrib2` binary in the `libs/grib2/wgrib2/` directory.
+If `make` is successful, you should have an executable `wgrib2` binary in the `etc/grib2/wgrib2/` directory.
 
-If desired, you can then softlink this into the standard location on most file systems with a `sudo ln -s libs/grib2/wgrib2/wgrib2 /usr/local/bin`. Either way, update the `WGRIB2` variable in the `configs.py` file to point to the `WGRIB2` binary location.
+If desired, you can then softlink this into the standard location on most file systems with a `sudo ln -s etc/grib2/wgrib2/wgrib2 /usr/local/bin`. Either way, update the `WGRIB2` variable in the `configs.py` file to point to the `WGRIB2` binary location.
 
 #### Set the perl scripts to executable
 Before being able to cron the driver script, you may also have to type: `chmod +x IO/*.pl` within the parent meso directory.

@@ -15,10 +15,10 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-[] Improve download execution for THREDDS requests
-[] Figure out GR's polygon fill rules: stripes on contour-filled plots...
-[] Build in automated checks for hung processes in the `run.py` driver
-[X] Add better error logging to the download step
+- [] Improve download execution for archived THREDDS requests
+- [] Figure out GR's polygon fill rules: stripes on contour-filled plots?
+- [X] Build in automated checks for hung processes in the `run.py` driver
+- [X] Add better error logging to the download step
 
 ## Basic Setup Notes
 The setup here proceeds using Anaconda, as well as assuming a completely vanilla Python3 install.
@@ -73,7 +73,7 @@ Important log files will be located in the `logs` directory. These can all be mo
 ##  Adding parameters
 Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary.
 
-Parameter calculations are performed in `sharptab.calcs`. Currently, parameter processing requires the addition of an if block in function `worker` with a string that exactly matches a dictionary key specified in either `SCALAR_PARAMS` or `VECTOR_PARAMS`. For information on how to add SHARPpy calculations, see the [SHARPpy Scripting documentation](https://sharppy.github.io/SHARPpy/scripting.html), but note that not all of SHARPpy's original functionalities are available in this jitted form. Calculations should be added as a function in `sharptab.derived`.
+Parameter calculations are performed in `sharptab.calcs`. Currently, parameter processing requires the addition of an if-block in function `worker` with a string that exactly matches a dictionary key specified in either `SCALAR_PARAMS` or `VECTOR_PARAMS`. For information on how to add SHARPpy calculations, see the [SHARPpy Scripting documentation](https://sharppy.github.io/SHARPpy/scripting.html), but note that not all of SHARPpy's original functionalities are available in this jitted code. Calculations should be added as a function in `sharptab.derived`.
 
 ## Creating an archived case
 

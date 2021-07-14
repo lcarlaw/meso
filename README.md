@@ -99,7 +99,7 @@ python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso
 You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour.
 
 ### Hodographs
-![](https://github.com/lcarlaw/meso/blob/1.0.1/hodograph_example.png)
+![](https://github.com/lcarlaw/meso/blob/master/hodograph_example.png)
 
 Usage to create hodographs is as follows:
 

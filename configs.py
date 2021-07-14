@@ -31,7 +31,8 @@ VECTOR_PARAMS = {
 }
 
 ##########################################################################################
-# User overrides for plotting configurations
+# User overrides for plotting configurations. If not specified, plotting specifications
+# default to those in barbconfigs and contourconfigs.
 ##########################################################################################
 PLOTCONFIGS = {
     'esrh': {
@@ -91,8 +92,8 @@ contourconfigs = {
 ##########################################################################################
 # Download configurations
 #
-# You likely won't need (or want) to change these. Download Priority is set by
-# the order of the dictionary keys in the DATA_SOURCES variable.
+# You likely won't need (or want) to change these. Download priority is set by the order
+# of the dictionary keys in the DATA_SOURCES variable.
 ##########################################################################################
 TIMEOUT = 180 # Seconds after which to timeout the data download function
 MINSIZE = 10 # Grib files under this size (MB) will result in a download error

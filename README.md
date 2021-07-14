@@ -17,6 +17,7 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 ### To do:
 - [] Improve download execution for archived THREDDS requests
 - [] Figure out GR's polygon fill rules: stripes on contour-filled plots?
+- [] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file 
 - [X] Build in automated checks for hung processes in the `run.py` driver
 - [X] Add better error logging to the download step
 

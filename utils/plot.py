@@ -249,7 +249,7 @@ def write_placefile(arrs, realtime=False):
         with open(out_file, 'w') as f: f.write("".join(output))
 
 def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
-    iconfile = kwargs.get('windicons', 'https://jupiter-dev.ngrok.io/windicons.png')
+    iconfile = kwargs.get('windicons', 'Missing: Please specify in barbconfigs variable in cofigs.py!')
     plotinfo = kwargs.get('varname', 'None')
     skip = kwargs.get('skip', 6)
     out = []

@@ -15,11 +15,10 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-- Figure out GR's polygon fill rules: stripes on contour-filled plots...
-- Build in automated checks for hung processes in the `run.py` driver
-- Change the `-s, -e, -t` times to be expected valid times instead of cycle run times?
-- Investigate Python Ray and cluster-computing
-- Support for CUDA/GPU-based calculations for further speed increases?  
+- [] Improve download execution for THREDDS requests
+- [] Figure out GR's polygon fill rules: stripes on contour-filled plots...
+- [] Build in automated checks for hung processes in the `run.py` driver
+- [X] Add better error logging to the download step
 
 ## Basic Setup Notes
 The setup here proceeds using Anaconda, as well as assuming a completely vanilla Python3 install.
@@ -72,7 +71,9 @@ python run.py
 Important log files will be located in the `logs` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
 
 ##  Adding parameters
-Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary. Important calculation functions are stored in `sharptab.calcs` and `sharptab.derived`.
+Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary.
+
+Parameter calculations are performed in `sharptab.calcs`. Currently, parameter processing requires the addition of an if block in function `worker` with a string that exactly matches a dictionary key specified in either `SCALAR_PARAMS` or `VECTOR_PARAMS`. For information on how to add SHARPpy calculations, see the [SHARPpy Scripting documentation](https://sharppy.github.io/SHARPpy/scripting.html), but note that not all of SHARPpy's original functionalities are available in this jitted form. Calculations should be added as a function in `sharptab.derived`.
 
 ## Creating an archived case
 
@@ -86,6 +87,8 @@ python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR
 ```
 
 Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `./IO/data` directory and upscaled to 13 km grid spacing (same as the RAP).
+
+The HRRR archive on the Google Cloud appears to go back to 2014/07/30. The RAP/RUC archive on the THREDDS server goes back further, but you may notice more errors when downloading due to data response latencies during the web retrieval steps.
 
 ### Creating placefiles
 ```

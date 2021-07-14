@@ -125,7 +125,7 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
             if 'cape3km' in SCALARS: d['cape3km'][j,i] = mlpcl.b3km
             if 'esrh' in SCALARS: d['esrh'][j,i] = derived.esrh(prof, eff_inflow)
 
-            # Vectors: returned as (u,v) tuples
+            # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:
                 d['ebwd_u'][j,i], d['ebwd_v'][j,i] = derived.ebwd(prof, mupcl, eff_inflow)
             if 'shr1' in VECTORS:

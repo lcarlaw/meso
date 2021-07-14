@@ -91,10 +91,16 @@ def execute_regrid(full_name):
             arg = "%s %s -new_grid %s %s" % (WGRIB2, full_name, grid_info, save_name)
 
         log.info("CMD %s" % (arg))
-        execute(arg)
+        p = execute(arg)
+
+        if p.returncode != 0:
+            log.error("Failure in execute_regrid. Check that WGRIB2 path is specified in "
+                      "configs.py")
+            sys.exit(1)
 
     # Remove the original file
-    execute("rm %s" % (full_name))
+    p = execute("rm %s" % (full_name))
+    if p.returncode == 0: log.info("Removed %s" % (full_name))
 
 def execute_download(full_name, url):
     """Download the requested files
@@ -121,9 +127,12 @@ def execute_download(full_name, url):
                 script_path, url, vars, script_path, url, full_name
                 )
     if not os.path.exists(full_name + '.reduced'):
-        execute(arg1)
+        p = execute(arg1)
+        if p.returncode != 0:
+            log.error("Failed to download from source. Check WGET variable in configs.py")
+            sys.exit(1)
     else:
-        log.info("Data already exists locally")
+        log.info("Data already exists locally at %s.reduced" % (full_name))
         pass
 
     if arg2 is not None:
@@ -216,7 +225,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                 # THREDDS. Priority 4--just for reanalysis runs. Only RAP available.
                 elif source == 'THREDDS':
                     # Two cases: the RAP and the old RUC. The RAP took over on the
-                    # 2021-05-01/12z cycle.
+                    # 2020-05-01/12z cycle.
                     for case in THREDDS_CONFIGS.keys():
                         name = 'rap'
                         if case == 'RUC': name = 'ruc2anl'
@@ -260,7 +269,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
         my_pool.close()
         my_pool.terminate()
     else:
-        log.error("*** Some requested data was not downloaded ***")
+        log.error("Some or all requested data was not found. Check user inputs.")
 
     # Make sure we've got all the expected files.
     knt = 0
@@ -278,7 +287,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
         return_status = True
         log.info("Success downloading files")
     else:
-        log.info("Some requested data was not downloaded")
+        log.error("File mismatch. Some data likely wasn't downloaded")
 
     return return_status, download_dir
 
@@ -331,22 +340,22 @@ if __name__ == '__main__':
 
     # Warning if user has selected archived (non-native coordinate) RAP data
     if args.model == 'RAP' and cycle_dt[0] < datetime(2021, 2, 21, 0):
-        warn = """
+        print("""
         ******************************************************************
         *                                                                *
         * [INFO] RAP data is only available on isobaric coordinates.     *
         * Due to the sensitivity of mixed-layer and most-unstable parcel *
         * calculations to near-surface vertical resolution, this dataset *
         * may result in less accurate thermodynamic calculations. Are    *
-        * you sure you want to proceed? [y|N]                            *
+        * you sure you want to proceed? [y|n]                            *
         *                                                                *
         ******************************************************************
-        """
-        print(warn)
+        """)
         resp = input()
         if resp not in ['y', 'Y', 'yes'] or resp in ['n', 'N']: sys.exit(1)
 
-    log.info("################### New download processing ###################")
+    log.info(" ================================= New download processing"
+             " =================================")
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(False))
     status, download_dir = download_data(list(cycle_dt), data_path=args.data_path,
                                          model=args.model, num_hours=args.num_hours,

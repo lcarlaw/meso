@@ -6,11 +6,10 @@ import argparse
 from multiprocessing import Pool, freeze_support
 import pandas as pd
 import numpy as np
-
 import timeout_decorator
 
-from configs import WGRIB2, WGET, TIMEOUT
-from configs import sources, google_configs, thredds_configs, vars, grid_info
+from configs import WGRIB2, WGET, TIMEOUT, MINSIZE
+from configs import DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, vars, grid_info
 from utils.timing import timeit
 from utils.cmd import execute
 
@@ -27,12 +26,15 @@ log = logging.getLogger()
 log.setLevel(logging.INFO)
 
 def interpolate_in_time(download_dir):
-    """Interpolate 1 and 2 hour forecasts in time every 15 minutes"""
-    #specs = {
-    #    '75 min fcst': [0.75, 0.25],
-    #    '90 min fcst': [0.5, 0.5],
-    #    '105 min fcst': [0.25, 0.75]
-    #}
+    """Interpolate 1 and 2 hour forecasts in time every 15 minutes using WGRIB2
+
+    Parameters:
+    -----------
+    download_dir : string
+        Directory containing downloaded grib2 files
+
+    """
+
     files = sorted(glob(download_dir + '/*.reduced'))
     arg = "%s %s %s %s %s %s %s %s/%s" % (
          WGRIB2, files[0], '-rpn sto_1 -import_grib', files[1],
@@ -55,9 +57,10 @@ def test_url(url):
     ----------
     url : string
         URL we're testing for
+
     """
     try:
-        ru = requests.head(url, timeout=0.5)
+        ru = requests.head(url, timeout=1)
         status = ru.ok
     except:
         status = False
@@ -66,6 +69,13 @@ def test_url(url):
 def execute_regrid(full_name):
     """
     Performs subsetting of the original data files to help speed up plotting routines.
+    The `grid_info` variable is specified in the configuration file.
+
+    Parameters:
+    -----------
+    full_name : string
+        Filepath and filename
+
     """
 
     save_name = "%s.reduced" % (full_name)
@@ -81,13 +91,27 @@ def execute_regrid(full_name):
             arg = "%s %s -new_grid %s %s" % (WGRIB2, full_name, grid_info, save_name)
 
         log.info("CMD %s" % (arg))
-        execute(arg)
+        p = execute(arg)
+
+        if p.returncode != 0:
+            log.error("Failure in execute_regrid. Check that WGRIB2 path is specified in "
+                      "configs.py")
 
     # Remove the original file
-    execute("rm %s" % (full_name))
+    p = execute("rm %s" % (full_name))
+    if p.returncode == 0: log.info("Removed %s" % (full_name))
 
 def execute_download(full_name, url):
-    """Download the files in parallel"""
+    """Download the requested files
+
+    Parameters:
+    -----------
+    full_name : string
+        Filepath and filename
+    url : string
+        URL to requested file
+
+    """
 
     arg2 = None
     if 'storage.googleapis.com' in url:
@@ -98,15 +122,20 @@ def execute_download(full_name, url):
     elif 'ncei' in url:
         arg1 = '%s -O %s %s' % (WGET, full_name, url)
     else:
-        arg1 = script_path + '/IO/get_inv.pl ' + url + '.idx | egrep ' + "'" + vars +    \
-              "'" + ' | ' + script_path + '/IO/get_grib.pl ' + url + ' ' + full_name
+        arg1 = "%s/IO/get_inv.pl %s.idx | egrep '%s' | %s/IO/get_grib.pl %s %s" % (
+                script_path, url, vars, script_path, url, full_name
+                )
 
+    # Download data if not on the current filesystem
     if not os.path.exists(full_name + '.reduced'):
-        execute(arg1)
+        p = execute(arg1)
+        if p.returncode != 0:
+            log.error("Failed to download from source. Check WGET variable in configs.py")
     else:
-        log.info("Data already exists locally")
+        log.info("Data already exists locally at %s.reduced" % (full_name))
         pass
 
+    # For GOOGLE-based downloads
     if arg2 is not None:
         execute(arg2)
         execute("rm %s" % (full_name))
@@ -117,7 +146,7 @@ def make_dir(run_time, data_path):
     if not os.path.exists(download_dir): os.makedirs(download_dir)
     return download_dir
 
-# The goal is to catch hung download processes here.
+# The goal is to catch hung download processes with this decorator function.
 @timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
 def download_data(dts, data_path, model, num_hours=None, realtime=True):
     """Function called by main() to control download of model data.
@@ -147,7 +176,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
     if model is None: model = 'RAP'
     if data_path is None: data_path = '%s/data' % (script_path)
 
-    SOURCES = list(sources.keys())
+    sources = list(DATA_SOURCES.keys())
 
     fhrs = np.arange(1, int(num_hours)+1, 1)
     downloads = {}
@@ -168,43 +197,40 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                 log.error("Bad model type passed")
                 sys.exit(1)
 
+            ##############################################################################
+            # Online source checks
+            ##############################################################################
             # If it's too early, don't try to use the FTPPRD backup site (slower download)
             delta = abs((datetime.utcnow() - dt).total_seconds())
             if delta < 3900:
-                if 'FTPPRD' in SOURCES: SOURCES.remove('FTPPRD')
-
+                if 'FTPPRD' in sources: sources.remove('FTPPRD')
             full_name = "%s/%s" % (download_dir, filename)
-            for source in SOURCES:
-                base_url = sources[source]
+
+            for source in sources:
+                base_url = DATA_SOURCES[source]
 
                 # NOMADS or backup FTPPRD site. Priority 1 and 2
                 if source in ['NOMADS', 'FTPPRD']:
-                    if model == 'RAP': CONUS = ''
                     url = "%s/%s/prod/%s.%s/%s/%s" % (base_url,model.lower(),
                                                       model.lower(),dt.strftime('%Y%m%d'),
                                                       CONUS, filename)
                 # GOOGLE. Priority 3
-                elif source == 'GOOGLE' and model not in ['RAP']:
+                elif source == 'GOOGLE':
                     # RAP data is ~4 hours behind, while HRRR data is near-realtime.
-                    # Additionally, the RAP archive is limited, so we're ok forcing
-                    # use of the HRRR here and upscaling to 13 km, in the event NOMADS
-                    # and the ftpprd site are down.
-                    model_name = google_configs[model]
-                    filename = "hrrr.t%sz.wrfnatf%s.grib2" % (str(dt.hour).zfill(2),
-                                                              str(fhr).zfill(2))
-                    url = "%s/%s/%s.%s/conus/%s" % (base_url, model_name, model.lower(),
-                                                 dt.strftime('%Y%m%d'), filename)
+                    # RAP data goes back to the 2021-02-22/00z run.
+                    model_name = GOOGLE_CONFIGS[model]
+                    url = "%s/%s/%s.%s/%s/%s" % (base_url, model_name, model.lower(),
+                                                 dt.strftime('%Y%m%d'), CONUS, filename)
                     full_name = "%s/%s" % (download_dir, filename)
 
                 # THREDDS. Priority 4--just for reanalysis runs. Only RAP available.
                 elif source == 'THREDDS':
-                    # We have two cases: the RAP and the old RUC. The RAP took over for
-                    # the 2021-05-01/12z cycle.
-                    for case in thredds_configs.keys():
+                    # Two cases: the RAP and the old RUC. The RAP took over on the
+                    # 2020-05-01/12z cycle.
+                    for case in THREDDS_CONFIGS.keys():
                         name = 'rap'
                         if case == 'RUC': name = 'ruc2anl'
-
-                        base_name = thredds_configs[case]
+                        base_name = THREDDS_CONFIGS[case]
                         filename = "%s-ncei.t%sz.%sf%s.%s" % (case.lower(),
                                                               str(dt.hour).zfill(2),
                                                               'awp130pgrb',
@@ -212,7 +238,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                                                               'grib2')
 
                         url = "%s/%s/%s/%s/%s_%s_%s_%s00_%s.%s" % (base_url,
-                                                                   thredds_configs[case],
+                                                                   THREDDS_CONFIGS[case],
                                                                    dt.strftime('%Y%m'),
                                                                    dt.strftime('%Y%m%d'),
                                                                    name, '130',
@@ -225,6 +251,8 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
                             full_name = "%s/%s" % (download_dir, filename)
                             break
 
+                idx = url.index('//') + 2
+                url = url[0:idx] + url[idx:].replace('//', '/')
                 status = test_url(url)
                 if status:
                     log.info("Download source: %s" % (source))
@@ -234,6 +262,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
             log.info("Target file: %s" % (full_name))
             expected_files += 1
 
+    # Download requested files via separate processes
     if len(downloads.keys()) >= 1:
         my_pool = Pool(np.clip(1, len(downloads), 4))
         my_pool.starmap(execute_download, zip(downloads.keys(), downloads.values()))
@@ -241,14 +270,14 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
         my_pool.close()
         my_pool.terminate()
     else:
-        log.error("*** ERROR finding files ***")
+        log.error("Some or all requested data was not found. Check user inputs.")
 
     # Make sure we've got all the expected files.
     knt = 0
     for f in downloads.keys():
         filename = f + '.reduced'
         if os.path.exists(filename):
-            if os.stat(filename).st_size > 1024000.:
+            if os.stat(filename).st_size > MINSIZE/1024000.:
                 knt += 1
             else:
                 log.error("%s is %s MB" % (filename, os.stat(filename).st_size/1024000.))
@@ -258,6 +287,8 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
     if knt == expected_files:
         return_status = True
         log.info("Success downloading files")
+    else:
+        log.error("File mismatch. Some data likely wasn't downloaded")
 
     return return_status, download_dir
 
@@ -267,23 +298,26 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
                     help='Realtime mode')
-    ap.add_argument('-m', '--model', dest='model', help='RAP or HRRR. Leaving this flag  \
-                    off will default to downloading RAP data.')
+    ap.add_argument('-m', '--model', dest='model', help='RAP or HRRR. Default is RAP')
     ap.add_argument('-n', '--num-hours', dest='num_hours', help='Number of forecast      \
-                    hours to download')
-    ap.add_argument('-t', '--time-str', dest='time_str', help='YYYY-MM-DD/HH')
+                    hours to download. Default is 1 hour')
+    ap.add_argument('-t', '--time-str', dest='time_str', help='For an individual cycle.  \
+                    Form is YYYY-MM-DD/HH. No -s or -e flags taken.')
     ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
                     multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
                     "-e" flag. No -t flag is taken.')
     ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
-    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data')
+    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data.\
+                    Default is in the ./IO/data directory.')
     args = ap.parse_args()
 
     if args.data_path is None: args.data_path = "%s/IO/data" % (script_path)
     timestr_fmt = '%Y-%m-%d/%H'
 
     if args.realtime or args.time_str is not None:
+        args.start_time, args.end_time = None, None
         if args.realtime:
+            args.num_hours = 2
             target = datetime.utcnow() - timedelta(minutes=51)
             cycle_dt = [datetime(target.year, target.month, target.day, target.hour)]
         else:
@@ -298,7 +332,7 @@ if __name__ == '__main__':
 
         cycle_dt = []
         while start_dt <= end_dt:
-            cycle_dt.append(start_dt)
+            cycle_dt.append(start_dt-timedelta(hours=1))
             start_dt += timedelta(hours=1)
 
     else:
@@ -306,23 +340,23 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Warning if user has selected archived (non-native coordinate) RAP data
-    if args.model == 'RAP' and not args.realtime:
-        warn = """
+    if args.model == 'RAP' and cycle_dt[0] < datetime(2021, 2, 21, 0):
+        print("""
         ******************************************************************
         *                                                                *
         * [INFO] RAP data is only available on isobaric coordinates.     *
         * Due to the sensitivity of mixed-layer and most-unstable parcel *
         * calculations to near-surface vertical resolution, this dataset *
         * may result in less accurate thermodynamic calculations. Are    *
-        * you sure you want to proceed? [y|N]                            *
+        * you sure you want to proceed? [y|n]                            *
         *                                                                *
         ******************************************************************
-        """
-        print(warn)
+        """)
         resp = input()
         if resp not in ['y', 'Y', 'yes'] or resp in ['n', 'N']: sys.exit(1)
 
-    log.info("################### New download processing ###################")
+    log.info(" ================================= New download processing"
+             " =================================")
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(False))
     status, download_dir = download_data(list(cycle_dt), data_path=args.data_path,
                                          model=args.model, num_hours=args.num_hours,
@@ -330,5 +364,5 @@ if __name__ == '__main__':
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(status))
 
     # If this is realtime, interpolate the 1 and 2-hour forecasts in time
-    if status and args.realtime and int(args.num_hours) == 2:
-        interpolate_in_time(download_dir)
+    if not args.num_hours: args.num_hours = 0
+    if status and args.realtime: interpolate_in_time(download_dir)

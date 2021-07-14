@@ -16,10 +16,10 @@ import utils.plot as plot
 from utils.timing import timeit
 
 import IO.read as read
-from configs import plotinfo
 
 from utils.cmd import execute
 
+# Set up the logging file
 script_path = os.path.dirname(os.path.realpath(__file__))
 log_dir = "%s/logs" % (script_path)
 if not os.path.exists(log_dir): os.makedirs(log_dir)
@@ -58,49 +58,35 @@ def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
 
 @timeit
 def create_placefiles(data, realtime=False):
-    out_arrs = []
+    plot_arrays = []
     for i in range(len(data)):
         arr = data[i]
         prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
                      'dwpc':arr['dwpc'], 'hght':arr['hght'],
                      'wdir':arr['wdir'], 'wspd':arr['wspd']}
-        log.info("SHARPpy calculations...")
-        out_arrs.append(calcs.sharppy_calcs(**prof_data))
+        plot_arrays.append(calcs.sharppy_calcs(**prof_data))
+
+    # Add the model run metadata
+    for i in range(len(data)):
         for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
-            out_arrs[-1][item] = arr[item]
+            plot_arrays[i][item] = data[i][item]
 
-    plot.write_placefile(out_arrs, plotinfo, realtime=realtime)
-    log.info("---- Finished processing ----")
+    # Final filter (smoothing and masking logic) and plotting/placefiles.
+    plot_arrays = calcs.filter(plot_arrays)
+    plot.write_placefile(plot_arrays, realtime=realtime)
 
-def find_nearest(dt, datadir):
-    """Find the nearest available RAP forecast to the current time or user-requested time
-
-    Parameters:
-    -----------
-    dt : datetime
-        The current time or user-requested time
-
+def query_files(filepath):
     """
-    regex_str = 'f\d{2}.grib2.reduced'
-
-    deltas = {}
-    dirs = glob(datadir + '/*')
-    min_delta = 99999999
-    for dirname in dirs:
-        files = glob(dirname + '/**/*.reduced', recursive=True)
-
-        for f in files:
-            shortname = f.lstrip(datadir)
-            cycle = datetime.strptime(shortname[0:13], '%Y-%m-%d/%H')
-            fhr = int(re.findall(regex_str, shortname)[0][1:3])
-            valid_time = cycle + timedelta(hours=fhr)
-
-            # Apply a penalty to older model cycles valid at the same time
-            increment = (dt.hour - cycle.hour)
-            delta = np.fabs((valid_time - dt).total_seconds()) + increment
-            deltas[delta] = f
-            if np.fabs(delta) < min_delta: min_delta = delta
-    return deltas[min_delta]
+    Return the model file(s) in a particular directory. Probably need to add a check
+    based on the model type if user has downloaded multiple into this directory.
+    """
+    files = glob(filepath + '/*.reduced')
+    if len(files) >= 1:
+        if len(files) > 1: log.warning("More than 1 model file in %s" % (filepath))
+        return files[0]
+    else:
+        log.warning("No model data found in %s" % (filepath))
+        sys.exit(1)
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
@@ -168,13 +154,10 @@ if __name__ == '__main__':
         filepath = "%s/%s" % (args.data_path, dt.strftime('%Y-%m-%d/%H'))
         if args.realtime:
             for grb in ['0_0', '0_50', '1_0']:
-                log.info("Reading sub-hourly file: %s" % (grb))
                 data.append(read.read_data("%s/%s.grib2" % (filepath, grb)))
         else:
-            filename = find_nearest(dt, args.data_path)
+            filename = query_files(filepath)
             data.append(read.read_data(filename))
-            log.info("Closest file in time is: %s" % (filename))
-
         dt += timedelta(hours=1)
 
     # Direct us to the plotting/output functions.

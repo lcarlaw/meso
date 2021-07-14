@@ -4,7 +4,7 @@ same 13-km grid spacing as the RAP). Each grid point is run through SHARPpy's pa
 functions. While these fields will not exactly match those on the SPC mesoanalysis page,
 they should generally be close.
 
-These files should be available by :05 after the hour. The 1 and 2-hour forecasts are
+These files should be available by :00-:05 after the hour. The 1 and 2-hour forecasts are
 linearly interpolated in time to create two additional analyses valid at the bottom of the
 current hour and top of the next hour. These will automatically time-match in GR at :15 and
 :45.

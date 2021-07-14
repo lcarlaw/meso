@@ -15,10 +15,10 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-- [] Improve download execution for THREDDS requests
-- [] Figure out GR's polygon fill rules: stripes on contour-filled plots...
-- [] Build in automated checks for hung processes in the `run.py` driver
-- [X] Add better error logging to the download step
+[] Improve download execution for THREDDS requests
+[] Figure out GR's polygon fill rules: stripes on contour-filled plots...
+[] Build in automated checks for hung processes in the `run.py` driver
+[X] Add better error logging to the download step
 
 ## Basic Setup Notes
 The setup here proceeds using Anaconda, as well as assuming a completely vanilla Python3 install.

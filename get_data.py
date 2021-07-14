@@ -96,7 +96,6 @@ def execute_regrid(full_name):
         if p.returncode != 0:
             log.error("Failure in execute_regrid. Check that WGRIB2 path is specified in "
                       "configs.py")
-            sys.exit(1)
 
     # Remove the original file
     p = execute("rm %s" % (full_name))
@@ -126,15 +125,17 @@ def execute_download(full_name, url):
         arg1 = "%s/IO/get_inv.pl %s.idx | egrep '%s' | %s/IO/get_grib.pl %s %s" % (
                 script_path, url, vars, script_path, url, full_name
                 )
+
+    # Download data if not on the current filesystem
     if not os.path.exists(full_name + '.reduced'):
         p = execute(arg1)
         if p.returncode != 0:
             log.error("Failed to download from source. Check WGET variable in configs.py")
-            sys.exit(1)
     else:
         log.info("Data already exists locally at %s.reduced" % (full_name))
         pass
 
+    # For GOOGLE-based downloads
     if arg2 is not None:
         execute(arg2)
         execute("rm %s" % (full_name))

@@ -257,7 +257,7 @@ def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
     out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     out.append('Color: 255 255 255\n')
-    out.append('IconFile: 1, 28, 28, 3, 28, "%s"\n' % (iconfile))
+    out.append('IconFile: 1, 26, 28, 14, 14, "%s"\n' % (iconfile))
     out.append('Font: 1, 10, 4, "Arial"\n\n')
     for j in range(U.shape[0])[::skip]:
         for i in range(V.shape[1])[::skip]:

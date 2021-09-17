@@ -146,9 +146,9 @@ def make_dir(run_time, data_path):
     if not os.path.exists(download_dir): os.makedirs(download_dir)
     return download_dir
 
-# The goal is to catch hung download processes with this decorator function.
+# Catch hung download processes with this decorator function. TIMEOUT specified in config
 @timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
-def download_data(dts, data_path, model, num_hours=None, realtime=True):
+def download_data(dts, data_path, model, num_hours=None):
     """Function called by main() to control download of model data.
 
     Parameters
@@ -158,16 +158,16 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
     data_path: string
         Path to download data to. Defaults to IO/data
     model : string
-        Desired model. Options are HRRR and RAP
+        Desired model. Options are HRRR and RAP. Default: RAP
     num_hours : int
         Last forecast hour. Default: 1
-    realtime : boolean
-        If this is a realtime or archived run. Default: True
 
     Returns
     -------
     status : boolean
         Availability of the dataset. False if unavailable.
+    download_dir: string
+        Path to downloaded model file(s)
 
     """
 
@@ -209,14 +209,14 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
             for source in sources:
                 base_url = DATA_SOURCES[source]
 
-                # NOMADS or backup FTPPRD site. Priority 1 and 2
+                # NOMADS or backup FTPPRD site. Priority 1 and 3
                 if source in ['NOMADS', 'FTPPRD']:
                     url = "%s/%s/prod/%s.%s/%s/%s" % (base_url,model.lower(),
                                                       model.lower(),dt.strftime('%Y%m%d'),
                                                       CONUS, filename)
-                # GOOGLE. Priority 3
+                # GOOGLE. Priority 2
                 elif source == 'GOOGLE':
-                    # RAP data is ~4 hours behind, while HRRR data is near-realtime.
+                    # As of 9/15/2021, RAP data is now near-realtime! HRRR is realtime.
                     # RAP data goes back to the 2021-02-22/00z run.
                     model_name = GOOGLE_CONFIGS[model]
                     url = "%s/%s/%s.%s/%s/%s" % (base_url, model_name, model.lower(),
@@ -288,7 +288,7 @@ def download_data(dts, data_path, model, num_hours=None, realtime=True):
         return_status = True
         log.info("Success downloading files")
     else:
-        log.error("File mismatch. Some data likely wasn't downloaded")
+        log.error("Expected %s files but found %s" % (expected_files, knt))
 
     return return_status, download_dir
 
@@ -313,7 +313,10 @@ if __name__ == '__main__':
 
     if args.data_path is None: args.data_path = "%s/IO/data" % (script_path)
     timestr_fmt = '%Y-%m-%d/%H'
+    log.info("\n")
+    log.info("----> New download processing")
 
+    # USER has specified the -rt flag or a specific cycle time
     if args.realtime or args.time_str is not None:
         args.start_time, args.end_time = None, None
         if args.realtime:
@@ -323,6 +326,7 @@ if __name__ == '__main__':
         else:
             cycle_dt = [datetime.strptime(args.time_str, timestr_fmt)]
 
+    # USER has specified starting and ending cycle times
     elif args.start_time is not None and args.end_time is not None:
         start_dt = datetime.strptime(args.start_time, timestr_fmt)
         end_dt = datetime.strptime(args.end_time, timestr_fmt)
@@ -339,28 +343,15 @@ if __name__ == '__main__':
         log.error("Missing time flags. Need one of -rt, -t, or -s and -e")
         sys.exit(1)
 
-    # Warning if user has selected archived (non-native coordinate) RAP data
-    if args.model == 'RAP' and cycle_dt[0] < datetime(2021, 2, 21, 0):
-        print("""
-        ******************************************************************
-        *                                                                *
-        * [INFO] RAP data is only available on isobaric coordinates.     *
-        * Due to the sensitivity of mixed-layer and most-unstable parcel *
-        * calculations to near-surface vertical resolution, this dataset *
-        * may result in less accurate thermodynamic calculations. Are    *
-        * you sure you want to proceed? [y|n]                            *
-        *                                                                *
-        ******************************************************************
-        """)
-        resp = input()
-        if resp not in ['y', 'Y', 'yes'] or resp in ['n', 'N']: sys.exit(1)
+    # RAP data via NCEI. Analyses and 1-hour forecasts only.
+    if cycle_dt[-1] < datetime(2021, 2, 21, 23):
+        if int(args.num_hours) > 1 and args.model in ['RAP', None]:
+            log.warning("Only 1 hour of forecast data available. Setting -n to 1")
+            args.num_hours=1
 
-    log.info(" ================================= New download processing"
-             " =================================")
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(False))
     status, download_dir = download_data(list(cycle_dt), data_path=args.data_path,
-                                         model=args.model, num_hours=args.num_hours,
-                                         realtime=args.realtime)
+                                         model=args.model, num_hours=args.num_hours)
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(status))
 
     # If this is realtime, interpolate the 1 and 2-hour forecasts in time

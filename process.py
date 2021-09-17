@@ -7,7 +7,8 @@ from time import time
 import re
 import logging
 
-import sharptab.calcs as calcs
+import calc.compute as compute
+import calc.filtering as filtering
 import sharptab.interp as interp
 import sharptab.winds as winds
 import utils.plot_hodos as plot_hodos
@@ -16,7 +17,6 @@ import utils.plot as plot
 from utils.timing import timeit
 
 import IO.read as read
-
 from utils.cmd import execute
 
 # Set up the logging file
@@ -64,7 +64,7 @@ def create_placefiles(data, realtime=False):
         prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
                      'dwpc':arr['dwpc'], 'hght':arr['hght'],
                      'wdir':arr['wdir'], 'wspd':arr['wspd']}
-        plot_arrays.append(calcs.sharppy_calcs(**prof_data))
+        plot_arrays.append(compute.sharppy_calcs(**prof_data))
 
     # Add the model run metadata
     for i in range(len(data)):
@@ -72,7 +72,7 @@ def create_placefiles(data, realtime=False):
             plot_arrays[i][item] = data[i][item]
 
     # Final filter (smoothing and masking logic) and plotting/placefiles.
-    plot_arrays = calcs.filter(plot_arrays)
+    plot_arrays = filtering.filter(plot_arrays)
     plot.write_placefile(plot_arrays, realtime=realtime)
 
 def query_files(filepath):
@@ -115,7 +115,8 @@ if __name__ == '__main__':
                           where DDD is the direction the storm is coming from, and SS is \
                           the speed in knots (e.g. 240/25).', default='right-mover')
     args = ap.parse_args()
-    log.info("---- New processing run ----")
+    log.info("\n")
+    log.info("----> New processing run")
 
     timestr_fmt = '%Y-%m-%d/%H'
     dt_end = None

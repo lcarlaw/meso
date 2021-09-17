@@ -234,8 +234,6 @@ def write_placefile(arrs, realtime=False):
                             **configs)
             else:
                 raise ValueError("%s is an invalid plot_type entry" % (plot_type))
-
-
             out_dict[parm].extend(out)
 
     for parm in parms:

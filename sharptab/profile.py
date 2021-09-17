@@ -12,7 +12,7 @@ from .constants import *
 ########################################################################################
 # Jitted form of sharppy.sharptab.profile.
 #
-# This code has been heavily re-written and subsequently simplitied to work with numba.
+# This code has been heavily re-written and subsequently simplified to work with numba.
 #
 # For example, **kwargs are not allowed and had to make further refinements to remove
 # calls to masked numpy arrays. This should be okay for our purposes since there should

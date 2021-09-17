@@ -1,10 +1,10 @@
 # meso
-This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst, as well as the ability to easily produce post-event reanalyses for use in local case studies.
+This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst, as well as the ability to easily produce post-event reanalyses for use in local case studies. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations.
 
 ## Code Execution Time Improvements Using Numba
-The main overhaul was to accelerate the CPU-intensive thermodynamic calculations performed by SHARPpy (mainly from parcel lifting calculations) using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba (use of `**kwargs` in function calls, masked numpy arrays, among other things). In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. As a result, the original SHARPpy code had to be parsed out line-by-line to allow it to work with Numba and the `@njit` decorator, and some flexibility has certainly been lost here. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
+The main overhaul was to accelerate the CPU-intensive thermodynamic calculations performed by SHARPpy (mainly from parcel lifting calculations) using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba (use of `**kwargs` in function calls, masked numpy arrays, among other things). In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. As a result, the original SHARPpy code was parsed out line-by-line to allow it to work with Numba and the `@njit` decorator, and some flexibility has certainly been lost here. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
 
-The main overhead--roughly 40-45 seconds for each run--is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it in this case due to the computationally-expensive lifting routines in SHARPpy, resulting in execution improvements which are orders of magnitude better than pure, interpreted, Python.
+The main overhead is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it in this case due to the computationally-expensive lifting routines in SHARPpy, resulting in execution improvements which are orders of magnitude better than pure, interpreted, Python.
 
 Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz Intel Core i9-9880H CPU (8 cores, 16 threads). The domain is 240 x 210 with a 13 km grid-spacing, discounting initial JIT times:
 
@@ -15,15 +15,16 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-- [] Improve download execution for archived THREDDS requests
-- [] Figure out GR's polygon fill rules: stripes on contour-filled plots?
-- [] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file 
-- [] Add capability to output images (.tif, high-res .png) of mesoanalysis parameters & upper-air variables
+- [ ] Improve download execution for archived THREDDS requests
+- [ ] Build simple cressman or barnes surface analysis?
+- [ ] Figure out GR's polygon fill rules: stripes on contour-filled plots?
+- [ ] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file
+- [ ] Add capability to output images (.tif, high-res .png) of mesoanalysis parameters & upper-air variables
 - [X] Build in automated checks for hung processes in the `run.py` driver
 - [X] Add better error logging to the download step
 
 ## Basic Setup Notes
-The setup here proceeds using Anaconda, as well as assuming a completely vanilla Python3 install.
+The setup proceeds using Anaconda, as well as assuming a completely vanilla Python3 install.
 
 ### Creating the base environment
 Run the following to create an Anaconda environment called `meso` with the required libraries:
@@ -38,7 +39,7 @@ You will need working `wget` and `wgrib2` binaries on your filesystem. Add these
 Change the `PYTHON` variable to point to the particular anaconda `meso` environment on your filesystem.
 
 #### Installing the latest WGRIB2 binary
-The latest version of wgrib2 is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
+Wgrib2 version 3.0.2 or higher is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
 
 ```
 brew install gcc@9
@@ -73,12 +74,31 @@ python run.py
 Important log files will be located in the `logs` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
 
 ##  Adding parameters
-Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary.
+Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. The key-value pairs will be used for the placefile name and verbose info string, respectively. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary with each key needing to match a key in either `SCALAR_PARAMS` or `VECTOR_PARAMS`.
 
-Parameter calculations are performed in `sharptab.calcs`. Currently, parameter processing requires the addition of an if-block in function `worker` with a string that exactly matches a dictionary key specified in either `SCALAR_PARAMS` or `VECTOR_PARAMS`. For information on how to add SHARPpy calculations, see the [SHARPpy Scripting documentation](https://sharppy.github.io/SHARPpy/scripting.html), but note that not all of SHARPpy's original functionalities are available in this jitted code. Calculations should be added as a function in `sharptab.derived`.
+Parameter calculations are performed in `calc.compute`. Numba does not allow easy passing of a dictionary registry containing pointers to parameter calculation functions, so each parameter must be specified as an if-block within function `worker`. Specific calculations must be added as a function in `sharptab.derived` and called in the associated if-block within the `worker` function. For information on how to add SHARPpy calculations, see the [SHARPpy Scripting documentation](https://sharppy.github.io/SHARPpy/scripting.html).
+
+### Parameter example
+Suppose we want to add 0-500 m Storm-Relative Helicity as a placefile. To do this:
+1. Add an entry to the `SCALAR_PARAMS` dictionary in the `configs.py` file:
+```
+'srh500': '0-500 m Storm-Relative Helicity'
+```
+2. Add a function to the `calc.derived.py` file:
+```
+@njit
+def srh500(prof):
+    RM5 = rm5(prof)
+    srh = winds.helicity(prof, 0, 500, stu=RM5[0], stv=RM5[1])[0]
+    return srh
+```
+3. Add an if-block to the `calc.compute.py` file:
+```
+if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof, eff_inflow)
+```
+4. If desired, specify contouring configurations in the `PLOTCONFIGS` dictionary within the `configs.py` file. The dictionary key must match the key we used in step 1.
 
 ## Creating an archived case
-
 ### Download the model data
 The `get_data.py` script will download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. 1-hour forecasts were chosen over 0-hour analyses to recreate what would have been available to forecasters in real time. `get_data.py` will accept a single time or a time range.  
 

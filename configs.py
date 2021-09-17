@@ -18,16 +18,17 @@ SCALAR_PARAMS = {
     'mlcin': 'Mixed-Layer CIN (J/kg)',
     'mlcape': 'Mixed-Layer CAPE (J/kg)',
     'cape3km': '0-3 km MLCAPE (J/kg)',
-    'estp': 'Effective SigTor Parameter'
+    'estp': 'Effective SigTor Parameter',
+    'srh500': '0-500 m Storm-Relative Helicity'
 }
 
 VECTOR_PARAMS = {
     'ebwd': 'Effective Bulk Shear (kt)',
     'shr1': 'Surface to 1 km shear (kt)',
     'shr3': 'Surface to 3 km shear (kt)',
-    'devtor': 'Deviant Tornado Motion (kt)',
     'rm5': 'Bunkers Right Motion Vectors',
     'lm5': 'Bunkers Left Motion Vectors',
+    'devtor': 'Deviant Tornado Motion (kt)',
 }
 
 ##########################################################################################
@@ -96,8 +97,8 @@ contourconfigs = {
 # of the dictionary keys in the DATA_SOURCES variable.
 ##########################################################################################
 TIMEOUT = 180 # Seconds after which to timeout the data download function
-MINSIZE = 10 # Grib files under this size (MB) will result in a download error
-SIGMA = 1.5  # For smoothing function. Larger = more smoothing, but amplitude loss
+MINSIZE = 5   # Grib files under this size (MB) will result in a download error
+SIGMA = 1.5   # For smoothing function. Larger = more smoothing, but amplitude loss
 
 DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',

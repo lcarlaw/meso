@@ -1,14 +1,11 @@
 /logs
 **/IO/data
 **junk
-/IO/get_rap.py.original
 __pycache__/
-/libs/grib2
 .DS_Store
 Thumbs.db
-get_rap.py.20210401
-run.py.20210401
 download_status.txt
 test.txt
 log.txt
 get_dev.sh
+/output/*.txt

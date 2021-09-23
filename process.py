@@ -5,7 +5,6 @@ from glob import glob
 from datetime import datetime, timedelta
 from time import time
 import re
-import logging
 
 import calc.compute as compute
 import calc.filtering as filtering
@@ -18,17 +17,9 @@ from utils.timing import timeit
 
 import IO.read as read
 from utils.cmd import execute
+from utils.logs import logfile
 
-# Set up the logging file
-script_path = os.path.dirname(os.path.realpath(__file__))
-log_dir = "%s/logs" % (script_path)
-if not os.path.exists(log_dir): os.makedirs(log_dir)
-logging.basicConfig(filename='%s/logs/process.log' % (script_path),
-                    format='%(levelname)s %(asctime)s :: %(message)s',
-                    datefmt="%Y-%m-%d %H:%M:%S")
-log = logging.getLogger()
-log.setLevel(logging.INFO)
-
+log = logfile('process')
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):
     for i in range(len(data)):

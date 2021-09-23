@@ -13,17 +13,10 @@ from datetime import datetime, timedelta
 
 from utils.cmd import execute
 from utils.timing import timeit
+from utils.logs import logfile
 from configs import PYTHON
 
-script_path = os.path.dirname(os.path.realpath(__file__))
-log_dir = "%s/logs" % (script_path)
-if not os.path.exists(log_dir): os.makedirs(log_dir)
-logging.basicConfig(filename='%s/logs/master.log' % (script_path),
-                    format='%(levelname)s %(asctime)s :: %(message)s',
-                    datefmt="%Y-%m-%d %H:%M:%S")
-log = logging.getLogger()
-log.setLevel(logging.INFO)
-
+log = logfile('main')
 @timeit
 def download_data():
     """Pass arguments to the get_data.py script to download data in realtime from either

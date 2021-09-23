@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 import requests
 import os, sys
+from pathlib import Path
 from glob import glob
 import argparse
 from multiprocessing import Pool, freeze_support
-import pandas as pd
 import numpy as np
 import timeout_decorator
 
@@ -12,21 +12,13 @@ from configs import WGRIB2, WGET, TIMEOUT, MINSIZE
 from configs import DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, vars, grid_info
 from utils.timing import timeit
 from utils.cmd import execute
+from utils.logs import logfile
 
-import logging
-
-# Get the script's path and set up our log file
 script_path = os.path.dirname(os.path.realpath(__file__))
-log_dir = "%s/logs" % (script_path)
-if not os.path.exists(log_dir): os.makedirs(log_dir)
-logging.basicConfig(filename='%s/logs/download.log' % (script_path),
-                    format='%(levelname)s %(asctime)s :: %(message)s',
-                    datefmt="%Y-%m-%d %H:%M:%S")
-log = logging.getLogger()
-log.setLevel(logging.INFO)
-
+log = logfile('download')
 def interpolate_in_time(download_dir):
-    """Interpolate 1 and 2 hour forecasts in time every 15 minutes using WGRIB2
+    """Interpolate 1 and 2 hour forecasts in time every 15 minutes using WGRIB2. Used for
+    realtime runs.
 
     Parameters:
     -----------
@@ -69,7 +61,8 @@ def test_url(url):
 def execute_regrid(full_name):
     """
     Performs subsetting of the original data files to help speed up plotting routines.
-    The `grid_info` variable is specified in the configuration file.
+    The `grid_info` variable is specified in the configuration file and controls the final
+    model domain.
 
     Parameters:
     -----------
@@ -113,6 +106,8 @@ def execute_download(full_name, url):
 
     """
 
+    log.info("URL: %s" % (url))
+
     arg2 = None
     if 'storage.googleapis.com' in url:
         arg1 = '%s -O %s %s' % (WGET, full_name, url)
@@ -148,7 +143,7 @@ def make_dir(run_time, data_path):
 
 # Catch hung download processes with this decorator function. TIMEOUT specified in config
 @timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
-def download_data(dts, data_path, model, num_hours=None):
+def download_data(dts, data_path, model='RAP', num_hours=1):
     """Function called by main() to control download of model data.
 
     Parameters
@@ -172,10 +167,7 @@ def download_data(dts, data_path, model, num_hours=None):
     """
 
     return_status = False
-    if num_hours is None: num_hours = 1
-    if model is None: model = 'RAP'
     if data_path is None: data_path = '%s/data' % (script_path)
-
     sources = list(DATA_SOURCES.keys())
 
     fhrs = np.arange(1, int(num_hours)+1, 1)
@@ -256,6 +248,7 @@ def download_data(dts, data_path, model, num_hours=None):
                 status = test_url(url)
                 if status:
                     log.info("Download source: %s" % (source))
+                    log.info("URL: %s" % (url))
                     downloads[full_name] = url
                     break
 
@@ -270,7 +263,7 @@ def download_data(dts, data_path, model, num_hours=None):
         my_pool.close()
         my_pool.terminate()
     else:
-        log.error("Some or all requested data was not found. Check user inputs.")
+        log.error("Some or all requested data was not found.")
 
     # Make sure we've got all the expected files.
     knt = 0
@@ -292,15 +285,24 @@ def download_data(dts, data_path, model, num_hours=None):
 
     return return_status, download_dir
 
-if __name__ == '__main__':
-    freeze_support()    # Needed for multiprocessing.Pool
+def check_configs():
+    """
+    Test to make sure the user-specified WGET and WGRIB2 files exist on the system.
 
+    """
+    for item in [WGET, WGRIB2]:
+        if not Path(item).is_file():
+            log.error("%s not found on filesystem. Check configs.py file." % (item))
+            sys.exit(1)
+
+def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
                     help='Realtime mode')
-    ap.add_argument('-m', '--model', dest='model', help='RAP or HRRR. Default is RAP')
-    ap.add_argument('-n', '--num-hours', dest='num_hours', help='Number of forecast      \
-                    hours to download. Default is 1 hour')
+    ap.add_argument('-m', '--model', dest='model', default='RAP', help='RAP or HRRR.     \
+                    Default is RAP')
+    ap.add_argument('-n', '--num-hours', dest='num_hours', default=1, help='Number of    \
+                    forecast hours to download. Default is 1 hour')
     ap.add_argument('-t', '--time-str', dest='time_str', help='For an individual cycle.  \
                     Form is YYYY-MM-DD/HH. No -s or -e flags taken.')
     ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
@@ -344,10 +346,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # RAP data via NCEI. Analyses and 1-hour forecasts only.
-    if cycle_dt[-1] < datetime(2021, 2, 21, 23):
-        if int(args.num_hours) > 1 and args.model in ['RAP', None]:
-            log.warning("Only 1 hour of forecast data available. Setting -n to 1")
-            args.num_hours=1
+    if args.model in ['RAP', None] and cycle_dt[-1] < datetime(2021, 2, 21, 23):
+        log.warning("Only 1 hour of forecast data available. Setting -n to 1")
+        args.num_hours=1
 
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(False))
     status, download_dir = download_data(list(cycle_dt), data_path=args.data_path,
@@ -357,3 +358,8 @@ if __name__ == '__main__':
     # If this is realtime, interpolate the 1 and 2-hour forecasts in time
     if not args.num_hours: args.num_hours = 0
     if status and args.realtime: interpolate_in_time(download_dir)
+
+if __name__ == '__main__':
+    freeze_support()    # Needed for multiprocessing.Pool
+    check_configs()     # Test USER paths from config file
+    main()              # Parse inputs

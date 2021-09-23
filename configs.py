@@ -1,13 +1,19 @@
 from collections import OrderedDict
+
 ##########################################################################################
-# User configurations
+# User configurations: Must be edited
 #
-# Adjust the following variables to point to Python, WGRIB2, and WGET
-# executables on the filesystem. See README for notes on WGET requirements.
+# Adjust the following variables to point to Python, WGRIB2, and WGET executables on the
+# filesystem. See README for notes on WGRIB2 requirements. Specify where to send logfiles.
 ##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
+LOGDIR = '/Users/leecarlaw/scripts/meso/output'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
+
+# URL or local path to wind icon files
+WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
+SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
 
 ##########################################################################################
 # Plotting configurations
@@ -42,7 +48,7 @@ PLOTCONFIGS = {
         'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
     },
     'shr1': {
-        'windicons': 'http://jupiter-dev.ngrok.io/shr1icons.png',
+        'windicons': SHEAR1_ICONS,
     },
     'mucape': {
         'colors': ['#ea908c', '#ea908c', '#da453a', '#da453a', '#da453a', '#c03c32',
@@ -80,7 +86,7 @@ PLOTCONFIGS = {
 ##########################################################################################
 barbconfigs = {
     'skip': 5,
-    'windicons': 'https://jupiter-dev.ngrok.io/windicons.png'
+    'windicons': WIND_ICONS
 }
 
 contourconfigs = {

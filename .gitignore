@@ -9,3 +9,4 @@ test.txt
 log.txt
 get_dev.sh
 /output/*.txt
+/output/*.log

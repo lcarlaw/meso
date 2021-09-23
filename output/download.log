@@ -1,18 +1,19 @@
-INFO 2021-09-22 23:05:47 :: 
+INFO 2021-09-22 23:20:09 :: 
 
-INFO 2021-09-22 23:05:47 :: ----> New download processing
-WARNING 2021-09-22 23:05:47 :: Only 1 hour of forecast data available. Setting -n to 1
-INFO 2021-09-22 23:05:49 :: Target file: /Users/leecarlaw/scripts/meso/IO/data/2007-01-01/00/rap.t00z.awp130bgrbf01.grib2
-ERROR 2021-09-22 23:05:49 :: Some or all requested data was not found.
-ERROR 2021-09-22 23:05:49 :: Expected 1 files but found 0
-INFO 2021-09-22 23:06:05 :: 
+INFO 2021-09-22 23:20:09 :: ----> New download processing
+INFO 2021-09-22 23:20:09 :: Download source: NOMADS
+INFO 2021-09-22 23:20:09 :: URL: https://nomads.ncep.noaa.gov/pub/data/nccf/com/hrrr/prod/hrrr.20210923/conus/hrrr.t03z.wrfnatf01.grib2
+INFO 2021-09-22 23:20:09 :: Target file: /Users/leecarlaw/scripts/meso/IO/data/2021-09-23/03/hrrr.t03z.wrfnatf01.grib2
+INFO 2021-09-22 23:20:10 :: Download source: NOMADS
+INFO 2021-09-22 23:20:10 :: URL: https://nomads.ncep.noaa.gov/pub/data/nccf/com/hrrr/prod/hrrr.20210923/conus/hrrr.t03z.wrfnatf02.grib2
+INFO 2021-09-22 23:20:10 :: Target file: /Users/leecarlaw/scripts/meso/IO/data/2021-09-23/03/hrrr.t03z.wrfnatf02.grib2
+INFO 2021-09-22 23:20:46 :: 
 
-INFO 2021-09-22 23:06:05 :: ----> New download processing
-WARNING 2021-09-22 23:06:05 :: Only 1 hour of forecast data available. Setting -n to 1
-INFO 2021-09-22 23:06:07 :: Download source: THREDDS
-INFO 2021-09-22 23:06:07 :: URL: https://www.ncei.noaa.gov/thredds/fileServer/model-ruc130anl/201201/20120101/ruc2anl_130_20120101_0000_001.grb2
-INFO 2021-09-22 23:06:07 :: Target file: /Users/leecarlaw/scripts/meso/IO/data/2012-01-01/00/ruc-ncei.t00z.awp130pgrbf01.grib2
-INFO 2021-09-22 23:06:07 :: URL: https://www.ncei.noaa.gov/thredds/fileServer/model-ruc130anl/201201/20120101/ruc2anl_130_20120101_0000_001.grb2
-INFO 2021-09-22 23:06:10 :: CMD /usr/local/bin/wgrib2 /Users/leecarlaw/scripts/meso/IO/data/2012-01-01/00/ruc-ncei.t00z.awp130pgrbf01.grib2 -new_grid_order - junk | /usr/local/bin/wgrib2 - -new_grid lambert:262.5:38.5 -105:240:13545.000000 25:210:13545.000000 /Users/leecarlaw/scripts/meso/IO/data/2012-01-01/00/ruc-ncei.t00z.awp130pgrbf01.grib2.reduced
-INFO 2021-09-22 23:06:19 :: Removed /Users/leecarlaw/scripts/meso/IO/data/2012-01-01/00/ruc-ncei.t00z.awp130pgrbf01.grib2
-INFO 2021-09-22 23:06:19 :: Success downloading files
+INFO 2021-09-22 23:20:46 :: ----> New download processing
+WARNING 2021-09-22 23:20:46 :: Only 1 hour of forecast data available. Setting -n to 1
+INFO 2021-09-22 23:20:48 :: Download source: THREDDS
+INFO 2021-09-22 23:20:48 :: URL: https://www.ncei.noaa.gov/thredds/fileServer/model-rap130anl/202101/20210101/rap_130_20210101_0000_001.grb2
+INFO 2021-09-22 23:20:48 :: Target file: /Users/leecarlaw/scripts/meso/IO/data/2021-01-01/00/rap-current-ncei.t00z.awp130pgrbf01.grib2
+INFO 2021-09-22 23:20:54 :: CMD /usr/local/bin/wgrib2 /Users/leecarlaw/scripts/meso/IO/data/2021-01-01/00/rap-current-ncei.t00z.awp130pgrbf01.grib2 -new_grid_order - junk | /usr/local/bin/wgrib2 - -new_grid lambert:262.5:38.5 -105:240:13545.000000 25:210:13545.000000 /Users/leecarlaw/scripts/meso/IO/data/2021-01-01/00/rap-current-ncei.t00z.awp130pgrbf01.grib2.reduced
+INFO 2021-09-22 23:21:03 :: Removed /Users/leecarlaw/scripts/meso/IO/data/2021-01-01/00/rap-current-ncei.t00z.awp130pgrbf01.grib2
+INFO 2021-09-22 23:21:03 :: Success downloading files

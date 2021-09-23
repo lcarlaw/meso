@@ -37,10 +37,10 @@ conda env create -f environment.yml
 ### Dependencies and config files
 You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file.
 
-Change the `PYTHON` variable to point to the particular anaconda `meso` environment on your filesystem.
+If you want to run this in realtime mode, specify the `PYTHON` variable to point to the particular anaconda `meso` environment (or whatever you named it) on your filesystem.
 
 #### Installing the latest WGRIB2 binary
-Wgrib2 version 3.0.2 or higher is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is necessary if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
+Wgrib2 version 3.0.2 or higher is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is needed if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
 
 ```
 brew install gcc@9
@@ -101,7 +101,7 @@ if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof, eff_inflow)
 
 ## Creating an archived case
 ### Download the model data
-The `get_data.py` script will download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. 1-hour forecasts were chosen over 0-hour analyses to recreate what would have been available to forecasters in real time. `get_data.py` will accept a single time or a time range.  
+The `get_data.py` script can download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. 1-hour forecasts were chosen over 0-hour analyses to recreate what would have been available to forecasters in real time. `get_data.py` will accept a single time or a time range.
 
 For this example, we'll download HRRR data during the August 10th, 2020 Midwest Derecho:
 
@@ -111,7 +111,7 @@ python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR
 
 Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `./IO/data` directory and upscaled to 13 km grid spacing (same as the RAP).
 
-The HRRR archive on the Google Cloud appears to go back to 2014/07/30. The RAP/RUC archive on the THREDDS server goes back further, but you may notice more errors when downloading due to data response latencies during the web retrieval steps.
+The HRRR archive on the Google Cloud appears to go back to the 18z run on 2014-07-30, while RAP data is available back to the 00z run on 2021-02-22. The RAP/RUC archive on the THREDDS server goes back further, but you may notice more errors when downloading due to data response latencies during the web retrieval steps, or missing model runs.
 
 ### Creating placefiles
 ```

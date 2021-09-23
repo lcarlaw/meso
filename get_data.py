@@ -10,7 +10,6 @@ import timeout_decorator
 
 from configs import WGRIB2, WGET, TIMEOUT, MINSIZE
 from configs import DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, vars, grid_info
-from utils.timing import timeit
 from utils.cmd import execute
 from utils.logs import logfile
 
@@ -105,9 +104,6 @@ def execute_download(full_name, url):
         URL to requested file
 
     """
-
-    log.info("URL: %s" % (url))
-
     arg2 = None
     if 'storage.googleapis.com' in url:
         arg1 = '%s -O %s %s' % (WGET, full_name, url)
@@ -186,7 +182,7 @@ def download_data(dts, data_path, model='RAP', num_hours=1):
                 filename = "rap.t%sz.awp130bgrbf%s.grib2" % (str(dt.hour).zfill(2),
                                                              str(fhr).zfill(2))
             else:
-                log.error("Bad model type passed")
+                log.error("Bad model type `%s` passed" % (model))
                 sys.exit(1)
 
             ##############################################################################
@@ -215,7 +211,7 @@ def download_data(dts, data_path, model='RAP', num_hours=1):
                                                  dt.strftime('%Y%m%d'), CONUS, filename)
                     full_name = "%s/%s" % (download_dir, filename)
 
-                # THREDDS. Priority 4--just for reanalysis runs. Only RAP available.
+                # THREDDS. Priority 4. Only for reanalysis runs. Only RAP available.
                 elif source == 'THREDDS':
                     # Two cases: the RAP and the old RUC. The RAP took over on the
                     # 2020-05-01/12z cycle.
@@ -319,7 +315,7 @@ def main():
     log.info("----> New download processing")
 
     # USER has specified the -rt flag or a specific cycle time
-    if args.realtime or args.time_str is not None:
+    if args.realtime or args.time_str:
         args.start_time, args.end_time = None, None
         if args.realtime:
             args.num_hours = 2
@@ -329,7 +325,7 @@ def main():
             cycle_dt = [datetime.strptime(args.time_str, timestr_fmt)]
 
     # USER has specified starting and ending cycle times
-    elif args.start_time is not None and args.end_time is not None:
+    elif args.start_time and args.end_time:
         start_dt = datetime.strptime(args.start_time, timestr_fmt)
         end_dt = datetime.strptime(args.end_time, timestr_fmt)
         if start_dt > end_dt:
@@ -345,7 +341,7 @@ def main():
         log.error("Missing time flags. Need one of -rt, -t, or -s and -e")
         sys.exit(1)
 
-    # RAP data via NCEI. Analyses and 1-hour forecasts only.
+    # RAP/RUC data via NCEI. Analyses and 1-hour forecasts only.
     if args.model in ['RAP', None] and cycle_dt[-1] < datetime(2021, 2, 21, 23):
         log.warning("Only 1 hour of forecast data available. Setting -n to 1")
         args.num_hours=1

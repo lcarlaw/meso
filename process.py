@@ -19,6 +19,7 @@ import IO.read as read
 from utils.cmd import execute
 from utils.logs import logfile
 
+script_path = os.path.dirname(os.path.realpath(__file__))
 log = logfile('process')
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):

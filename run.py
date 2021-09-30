@@ -16,6 +16,7 @@ from utils.timing import timeit
 from utils.logs import logfile
 from configs import PYTHON
 
+script_path = os.path.dirname(os.path.realpath(__file__))
 log = logfile('main')
 @timeit
 def download_data():

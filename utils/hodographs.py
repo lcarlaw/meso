@@ -1,6 +1,5 @@
 """Code taken from Tim Supinie's vad-plotter GitHub repo"""
 import numpy as np
-#from utils.interpolate import interp
 from sharptab.interp import generic_interp_hght
 from sharptab.winds import comp2vec, vec2comp
 

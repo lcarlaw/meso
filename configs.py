@@ -7,7 +7,7 @@ from collections import OrderedDict
 # filesystem. See README for notes on WGRIB2 requirements. Specify where to send logfiles.
 ##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
-LOGDIR = '/Users/leecarlaw/scripts/meso/output'
+LOGDIR = '/Users/leecarlaw/scripts/meso/logs'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
 

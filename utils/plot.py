@@ -6,8 +6,6 @@ from datetime import timedelta
 from collections import defaultdict
 
 import sharptab.winds as winds
-#from utils.plot_configs import metadata as meta
-#from configs import plotparams as meta
 from configs import SCALAR_PARAMS, VECTOR_PARAMS, barbconfigs, contourconfigs, PLOTCONFIGS
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
 

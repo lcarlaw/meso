@@ -7,7 +7,6 @@ decrease (increase).
 """
 import pygrib
 import numpy as np
-import pandas as pd
 import logging
 
 import sharptab.winds as winds

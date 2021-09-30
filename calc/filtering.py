@@ -20,6 +20,8 @@ def filter(data):
 
     for t in range(len(data)):
         vars = list(data[t].keys())
+
+        # Smooth the scalar parameter fields. SIGMA specified in the configs.py file.
         for v in vars:
             if v in SCALAR_PARAMS.keys():
                 data[t][v] = gaussian_filter(data[t][v], sigma=SIGMA)

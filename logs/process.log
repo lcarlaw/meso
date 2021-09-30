@@ -1,0 +1,16 @@
+INFO 2021-09-30 03:58:38 :: 
+
+INFO 2021-09-30 03:58:38 :: ----> New processing run
+INFO 2021-09-30 03:58:58 :: 
+
+INFO 2021-09-30 03:58:58 :: ----> New processing run
+INFO 2021-09-30 03:58:58 :: Reading file /Users/leecarlaw/scripts/meso/IO/data/2021-09-30/08/0_0.grib2
+INFO 2021-09-30 03:59:02 ::     Data is in HYBRID-SIGMA coordinates
+INFO 2021-09-30 03:59:02 :: Reading file /Users/leecarlaw/scripts/meso/IO/data/2021-09-30/08/0_50.grib2
+INFO 2021-09-30 03:59:06 ::     Data is in HYBRID-SIGMA coordinates
+INFO 2021-09-30 03:59:06 :: Reading file /Users/leecarlaw/scripts/meso/IO/data/2021-09-30/08/1_0.grib2
+INFO 2021-09-30 03:59:10 ::     Data is in HYBRID-SIGMA coordinates
+INFO 2021-09-30 04:00:51 :: Function: worker took: 100.5 seconds
+INFO 2021-09-30 04:01:20 :: Function: worker took: 28.1 seconds
+INFO 2021-09-30 04:01:48 :: Function: worker took: 28.7 seconds
+INFO 2021-09-30 04:01:51 :: Function: create_placefiles took: 160.3 seconds

@@ -1,14 +1,14 @@
 These GR-Placefiles are produced using 13-km RAP data each hour, except for the 00 and 12z
 cycles when HRRR data is used due to timeliness considerations (HRRR data is upscaled to the
 same 13-km grid spacing as the RAP). Each grid point is run through SHARPpy's parcel
-functions. While these fields will not exactly match those on the SPC mesoanalysis page,
-they should generally be close.
+functions. While these fields will not exactly match those on the SPC mesoanalysis page (no
+surface objective analysis pass is performed), they should generally be close.
 
-These files should be available by :00-:05 after the hour. The 1 and 2-hour forecasts are
+These files should be available by about :57-:59 each hour. The 1 and 2-hour forecasts are
 linearly interpolated in time to create two additional analyses valid at the bottom of the
 current hour and top of the next hour. These will automatically time-match in GR at :15 and
 :45.
 
 In the event of a NOMADS outage, this will fall back to searching the back-up FTPPRD site and
-finally a Google Cloud repository for realtime HRRR data. Data availability is not guaranteed,
-however, so be sure to check the timestamps in the GR Placefile Window!
+finally a Google Cloud repository for realtime HRRR and RAP data. Data availability is not
+guaranteed, however, so be sure to check the timestamps in the GR Placefile Window!

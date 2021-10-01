@@ -7,13 +7,9 @@ from collections import OrderedDict
 # filesystem. See README for notes on WGRIB2 requirements. Specify where to send logfiles.
 ##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
-LOGDIR = '/Users/leecarlaw/scripts/meso/logs'
+LOGDIR = '/Users/leecarlaw/scripts/meso/output/logs'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
-
-# URL or local path to wind icon files
-WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
-SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
 
 ##########################################################################################
 # Plotting configurations
@@ -41,6 +37,10 @@ VECTOR_PARAMS = {
 # User overrides for plotting configurations. If not specified, plotting specifications
 # default to those in barbconfigs and contourconfigs.
 ##########################################################################################
+# URL or local path to wind icon files
+WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
+SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
+
 PLOTCONFIGS = {
     'esrh': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],

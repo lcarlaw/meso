@@ -5,4 +5,4 @@ __pycache__/
 Thumbs.db
 download_status.txt
 /output/*.txt
-output/download.log
+/output/logs/

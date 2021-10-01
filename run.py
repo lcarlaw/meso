@@ -3,10 +3,9 @@
 This replaces the need to specify file and system PATHS via crontab, and instead bundles
 everything within this module's directory.
 """
-
+import os
 import schedule
 import time
-import os
 import logging
 from glob import glob
 from datetime import datetime, timedelta
@@ -66,6 +65,7 @@ def download_data():
         delta = time.time() - start
     return loop_is_done
 
+@timeit
 def make_placefiles():
     """Pass arguments to the process.py script to create GR-readable placefiles"""
     arg = "%s %s/process.py -rt -meso" % (PYTHON, script_path)
@@ -76,8 +76,8 @@ def make_placefiles():
 # has been completed.
 task1 = schedule.Scheduler()
 task2 = schedule.Scheduler()
-task1.every().hour.at(":54").do(download_data)
-task2.every().hour.at(":54").do(make_placefiles)
+task1.every().hour.at(":52").do(download_data)
+task2.every().hour.at(":52").do(make_placefiles)
 while True:
     task1.run_pending()
     task2.run_pending()

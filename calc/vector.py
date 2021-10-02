@@ -1,7 +1,13 @@
+"""Contains a collection of vector functions.
+
+Used to compute Bunkers right and left vectors and bulk wind shear magnitudes, for
+example. 
+"""
+
 import numpy as np
 from numba import njit
 
-def componentsTo(u,v):
+def componentsTo(u, v):
     return (u, v)
 
 def add(*args):
@@ -28,7 +34,6 @@ def add(*args):
 def multiply(*args):
     """From AWIPS. Perform multiplication of any number of scalars or of a vector and a
     scalar.
-
     """
     def scalarMultiply(args):
         return reduce(multiply, args)

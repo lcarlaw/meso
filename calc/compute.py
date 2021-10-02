@@ -1,12 +1,11 @@
+"""Contains functions to compute SHARPpy-specific and other derived meteorological
+variables.
+"""
+
 from numba import njit, prange
 from numba.typed import List, Dict
 from numba.core import types
-
-from collections import defaultdict
 import numpy as np
-
-from multiprocessing import Pool
-import multiprocessing
 
 from configs import SCALAR_PARAMS, VECTOR_PARAMS, SIGMA
 import sharptab.profile as profile

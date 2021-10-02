@@ -1,3 +1,6 @@
+"""Contains basic filtering and smoothing logic.
+"""
+
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from configs import SCALAR_PARAMS, VECTOR_PARAMS, SIGMA

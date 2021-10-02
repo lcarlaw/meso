@@ -1,4 +1,5 @@
-"""Functions used during the parameter calculation steps. See calc.compute.
+"""Functions used during the parameter calculation steps. See calc.compute and the
+`worker` function for specifics. 
 """
 
 from numba import njit

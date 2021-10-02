@@ -41,7 +41,7 @@ VECTOR_PARAMS = {
 WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
 SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
 
-PLOTCONFIGS = {
+plotconfigs = {
     'esrh': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
         'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],

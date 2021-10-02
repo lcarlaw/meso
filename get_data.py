@@ -275,7 +275,7 @@ def download_data(dts, data_path, model='RAP', num_hours=1):
 
     if knt == expected_files:
         return_status = True
-        log.info("Success downloading files")
+        log.info("Success downloading files or already on the filesystem")
     else:
         log.error("Expected %s files but found %s" % (expected_files, knt))
 
@@ -283,7 +283,8 @@ def download_data(dts, data_path, model='RAP', num_hours=1):
 
 def check_configs():
     """
-    Test to make sure the user-specified WGET and WGRIB2 files exist on the system.
+    Test to make sure the user-specified WGET and WGRIB2 files exist on the system. Exits
+    if either file can't be found.
 
     """
     for item in [WGET, WGRIB2]:
@@ -291,36 +292,30 @@ def check_configs():
             log.error("%s not found on filesystem. Check configs.py file." % (item))
             sys.exit(1)
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
-                    help='Realtime mode')
-    ap.add_argument('-m', '--model', dest='model', default='RAP', help='RAP or HRRR.     \
-                    Default is RAP')
-    ap.add_argument('-n', '--num-hours', dest='num_hours', default=1, help='Number of    \
-                    forecast hours to download. Default is 1 hour')
-    ap.add_argument('-t', '--time-str', dest='time_str', help='For an individual cycle.  \
-                    Form is YYYY-MM-DD/HH. No -s or -e flags taken.')
-    ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
-                    multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
-                    "-e" flag. No -t flag is taken.')
-    ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
-    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data.\
-                    Default is in the ./IO/data directory.')
-    args = ap.parse_args()
+def parse_logic(args):
+    """
+    QC user inputs and send arguments to download functions.
 
+    """
     if args.data_path is None: args.data_path = "%s/IO/data" % (script_path)
     timestr_fmt = '%Y-%m-%d/%H'
-    log.info("\n")
     log.info("----> New download processing")
 
     # USER has specified the -rt flag or a specific cycle time
+    curr_time = datetime.utcnow()
     if args.realtime or args.time_str:
         args.start_time, args.end_time = None, None
         if args.realtime:
             args.num_hours = 2
-            target = datetime.utcnow() - timedelta(minutes=51)
+            target = curr_time - timedelta(minutes=51)
+
+            # If 0 or 12z, RAP is delayed until ~01:28z or ~13:28z
+            if target.hour in [0, 12] and curr_time.minute < 29 and args.model == 'RAP':
+                log.info("Realtime RAP not available for 0 or 12z cycle. Setting to HRRR")
+                args.model = 'HRRR'
+
             cycle_dt = [datetime(target.year, target.month, target.day, target.hour)]
+
         else:
             cycle_dt = [datetime.strptime(args.time_str, timestr_fmt)]
 
@@ -354,6 +349,26 @@ def main():
     # If this is realtime, interpolate the 1 and 2-hour forecasts in time
     if not args.num_hours: args.num_hours = 0
     if status and args.realtime: interpolate_in_time(download_dir)
+    log.info("===================================================================\n")
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
+                    help='Realtime mode')
+    ap.add_argument('-m', '--model', dest='model', default='RAP', help='RAP or HRRR.     \
+                    Default is RAP')
+    ap.add_argument('-n', '--num-hours', dest='num_hours', default=1, help='Number of    \
+                    forecast hours to download. Default is 1 hour')
+    ap.add_argument('-t', '--time-str', dest='time_str', help='For an individual cycle.  \
+                    Form is YYYY-MM-DD/HH. No -s or -e flags taken.')
+    ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
+                    multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
+                    "-e" flag. No -t flag is taken.')
+    ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
+    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data.\
+                    Default is in the ./IO/data directory.')
+    args = ap.parse_args()
+    parse_logic(args)   # Set and QC user inputs. Pass for downloading
 
 if __name__ == '__main__':
     freeze_support()    # Needed for multiprocessing.Pool

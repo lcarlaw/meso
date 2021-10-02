@@ -1,8 +1,10 @@
-"""This controls the realtime execution of the mesoanalysis scripts.
+"""
+run.py controls the realtime execution of the mesoanalysis scripts.
 
 This replaces the need to specify file and system PATHS via crontab, and instead bundles
 everything within this module's directory.
 """
+
 import os
 import schedule
 import time
@@ -76,8 +78,8 @@ def make_placefiles():
 # has been completed.
 task1 = schedule.Scheduler()
 task2 = schedule.Scheduler()
-task1.every().hour.at(":52").do(download_data)
-task2.every().hour.at(":52").do(make_placefiles)
+task1.every().hour.at(":54").do(download_data)
+task2.every().hour.at(":54").do(make_placefiles)
 while True:
     task1.run_pending()
     task2.run_pending()

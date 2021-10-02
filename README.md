@@ -15,6 +15,7 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
+- [ ] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)
 - [ ] Improve download execution for archived THREDDS requests
 - [ ] Build simple cressman or barnes surface analysis?
 - [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations.

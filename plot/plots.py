@@ -2,17 +2,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import geojsoncontour
 import json
+import os
 from datetime import timedelta
 from collections import defaultdict
 
 import sharptab.winds as winds
-from configs import SCALAR_PARAMS, VECTOR_PARAMS, barbconfigs, contourconfigs, PLOTCONFIGS
+from configs import SCALAR_PARAMS, VECTOR_PARAMS, barbconfigs, contourconfigs, plotconfigs
+
+parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+#parent_path = os.path.dirname(script_path)
+
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
-
-import os
-script_path = os.path.dirname(os.path.realpath(__file__))
-parent_path = os.path.dirname(script_path)
-
 outdir = "%s/output" % (parent_path)
 if not os.path.exists(outdir): os.makedirs(outdir)
 
@@ -185,7 +185,6 @@ def write_placefile(arrs, realtime=False):
         filename.
 
     """
-    #parms = plotinfo.keys()
     parms = list(SCALAR_PARAMS.keys()) + list(VECTOR_PARAMS.keys())
     out_dict = defaultdict(list)
 
@@ -217,8 +216,8 @@ def write_placefile(arrs, realtime=False):
             # Add any user-requested ploting configurations to the base. Add the variable
             # name to the configuration dictionary.
             configs = base_configs.copy()
-            if parm in PLOTCONFIGS:
-                config_overrides = PLOTCONFIGS[parm]
+            if parm in plotconfigs:
+                config_overrides = plotconfigs[parm]
                 configs.update(config_overrides)
             configs['varname'] = PARAMS[parm]
 
@@ -245,7 +244,7 @@ def write_placefile(arrs, realtime=False):
         with open(out_file, 'w') as f: f.write("".join(output))
 
 def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
-    iconfile = kwargs.get('windicons', 'Missing: Please specify in barbconfigs variable in cofigs.py!')
+    iconfile = kwargs.get('windicons', 'Missing: Specify `WIND_ICONDS` in cofigs.py!')
     plotinfo = kwargs.get('varname', 'None')
     skip = kwargs.get('skip', 6)
     out = []
@@ -264,7 +263,8 @@ def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
                 numref = int(wspd_rounded//5)
                 out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')
                 out.append('  Threshold: 999\n')
-                out.append('  Icon: 0,0,%s,1,%s,%s\n' % (wdir, np.clip(numref,1,999), round(wspd,1)))
+                out.append('  Icon: 0,0,%s,1,%s,%s\n' % (wdir, np.clip(numref,1,999),
+                           round(wspd,1)))
                 out.append('End:\n\n')
     return out
 

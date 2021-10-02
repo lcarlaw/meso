@@ -7,7 +7,6 @@ decrease (increase).
 """
 import pygrib
 import numpy as np
-import pandas as pd
 import logging
 
 import sharptab.winds as winds
@@ -118,10 +117,10 @@ def read_data(filename):
     num_levels = len(heights)
 
     if not native:
-        logging.info("Data is in ISOBARIC coordinates")
+        logging.info("    Data is in ISOBARIC coordinates")
         num_levels += 1
     else:
-        logging.info("Data is in HYBRID-SIGMA coordinates")
+        logging.info("    Data is in HYBRID-SIGMA coordinates")
 
     hght = np.zeros((num_levels, arr_shape[0], arr_shape[1]))
     tmpc = np.full_like(hght, 0)

@@ -5,30 +5,25 @@ from glob import glob
 from datetime import datetime, timedelta
 from time import time
 import re
-import logging
 
-import sharptab.calcs as calcs
+import calc.compute as compute
+import calc.filtering as filtering
 import sharptab.interp as interp
 import sharptab.winds as winds
-import utils.plot_hodos as plot_hodos
-import utils.hodographs as hodographs
-import utils.plot as plot
+#import utils.plot_hodos as plot_hodos
+#import utils.hodographs as hodographs
+#import utils.plot as plot
 from utils.timing import timeit
 
+from plot.plots import write_placefile
+from plot.hodographs import parse_vector, compute_parameters, plot_hodograph
+
 import IO.read as read
-
 from utils.cmd import execute
+from utils.logs import logfile
 
-# Set up the logging file
 script_path = os.path.dirname(os.path.realpath(__file__))
-log_dir = "%s/logs" % (script_path)
-if not os.path.exists(log_dir): os.makedirs(log_dir)
-logging.basicConfig(filename='%s/logs/process.log' % (script_path),
-                    format='%(levelname)s %(asctime)s :: %(message)s',
-                    datefmt="%Y-%m-%d %H:%M:%S")
-log = logging.getLogger()
-log.setLevel(logging.INFO)
-
+log = logfile('process')
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):
     for i in range(len(data)):
@@ -49,12 +44,12 @@ def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
         hodo_data['model_name'] = arr['model_name']
 
         if sfc_wind:
-            sfc_wind = hodographs.parse_vector(sfc_wind)
+            sfc_wind = parse_vector(sfc_wind)
             sfc_wind = winds.vec2comp(sfc_wind[0], sfc_wind[1])
             hodo_data['uwnd'][0], hodo_data['vwnd'][0] = sfc_wind[0], sfc_wind[1]
 
-        params = hodographs.compute_parameters(hodo_data, storm_motion)
-        plot_hodos.plot_hodograph(hodo_data, params, storm_relative=storm_relative)
+        params = compute_parameters(hodo_data, storm_motion)
+        plot_hodograph(hodo_data, params, storm_relative=storm_relative)
 
 @timeit
 def create_placefiles(data, realtime=False):
@@ -64,7 +59,7 @@ def create_placefiles(data, realtime=False):
         prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
                      'dwpc':arr['dwpc'], 'hght':arr['hght'],
                      'wdir':arr['wdir'], 'wspd':arr['wspd']}
-        plot_arrays.append(calcs.sharppy_calcs(**prof_data))
+        plot_arrays.append(compute.sharppy_calcs(**prof_data))
 
     # Add the model run metadata
     for i in range(len(data)):
@@ -72,8 +67,8 @@ def create_placefiles(data, realtime=False):
             plot_arrays[i][item] = data[i][item]
 
     # Final filter (smoothing and masking logic) and plotting/placefiles.
-    plot_arrays = calcs.filter(plot_arrays)
-    plot.write_placefile(plot_arrays, realtime=realtime)
+    plot_arrays = filtering.filter(plot_arrays)
+    write_placefile(plot_arrays, realtime=realtime)
 
 def query_files(filepath):
     """
@@ -88,34 +83,13 @@ def query_files(filepath):
         log.warning("No model data found in %s" % (filepath))
         sys.exit(1)
 
-if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
-    ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
-                    help='Realtime mode. Script will look for the most recent model run.')
-    ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
-                    multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
-                    "-e" flag. No -t flag is taken.')
-    ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
-    ap.add_argument('-t', '--time-str', dest='time_str', help='Valid time for archived   \
-                    model runs. Script will default to 1-hr forecasts. YYYY-MM-DD/HH')
-    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store model\
-                    data. Default will be set to the IO/data directory.')
-    ap.add_argument('-meso', dest='meso', action='store_true',
-                    help='Flag to output mesoanalysis placefiles for GR2/Analyst.')
-    ap.add_argument('-hodo', '--hodograph', dest='hodo',
-                    help='Hodograph plot at a point ex: 35.03/-101.23')
-    ap.add_argument('-sr', '--storm-relative', dest='storm_relative', action='store_true',
-                    help='Flag to create a Storm Relative hodograph')
-    ap.add_argument('-sw', '--sfc-wind', dest='sfc_wind', help='Surface wind. Form is    \
-                    DDD/SS (e.g. 240/25)')
-    ap.add_argument('-m', '--storm-motion', dest='storm_motion',
-                    help='Storm motion vector. It takes one of two forms. The first is   \
-                          either "BRM" for the Bunkers right mover vector, or "BLM" for  \
-                          the Bunkers left mover vector. The second is the form DDD/SS,  \
-                          where DDD is the direction the storm is coming from, and SS is \
-                          the speed in knots (e.g. 240/25).', default='right-mover')
-    args = ap.parse_args()
-    log.info("---- New processing run ----")
+def parse_logic(args):
+    """
+    QC user inputs and send arguments to download functions.
+
+    """
+
+    log.info("----> New processing run")
 
     timestr_fmt = '%Y-%m-%d/%H'
     dt_end = None
@@ -167,3 +141,36 @@ if __name__ == '__main__':
         create_hodograph(data, point, storm_motion=args.storm_motion,
                          sfc_wind=args.sfc_wind, storm_relative=args.storm_relative)
     if args.meso: create_placefiles(data, realtime=args.realtime)
+    log.info("===================================================================\n")
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-rt', '--realtime', dest="realtime", action='store_true',
+                    help='Realtime mode. Script will look for the most recent model run.')
+    ap.add_argument('-s', dest='start_time', help='Initial valid time for analysis of    \
+                    multiple hours. Form is YYYY-MM-DD/HH. MUST be accompanied by the    \
+                    "-e" flag. No -t flag is taken.')
+    ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
+    ap.add_argument('-t', '--time-str', dest='time_str', help='Valid time for archived   \
+                    model runs. Script will default to 1-hr forecasts. YYYY-MM-DD/HH')
+    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store model\
+                    data. Default will be set to the IO/data directory.')
+    ap.add_argument('-meso', dest='meso', action='store_true',
+                    help='Flag to output mesoanalysis placefiles for GR2/Analyst.')
+    ap.add_argument('-hodo', '--hodograph', dest='hodo',
+                    help='Hodograph plot at a point ex: 35.03/-101.23')
+    ap.add_argument('-sr', '--storm-relative', dest='storm_relative', action='store_true',
+                    help='Flag to create a Storm Relative hodograph')
+    ap.add_argument('-sw', '--sfc-wind', dest='sfc_wind', help='Surface wind. Form is    \
+                    DDD/SS (e.g. 240/25)')
+    ap.add_argument('-m', '--storm-motion', dest='storm_motion',
+                    help='Storm motion vector. It takes one of two forms. The first is   \
+                          either "BRM" for the Bunkers right mover vector, or "BLM" for  \
+                          the Bunkers left mover vector. The second is the form DDD/SS,  \
+                          where DDD is the direction the storm is coming from, and SS is \
+                          the speed in knots (e.g. 240/25).', default='right-mover')
+    args = ap.parse_args()
+    parse_logic(args)   # Set and QC user inputs. Pass for downloading
+
+if __name__ == '__main__':
+    main()

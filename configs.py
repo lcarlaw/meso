@@ -1,11 +1,13 @@
 from collections import OrderedDict
+
 ##########################################################################################
-# User configurations
+# User configurations: Must be edited
 #
-# Adjust the following variables to point to Python, WGRIB2, and WGET
-# executables on the filesystem. See README for notes on WGET requirements.
+# Adjust the following variables to point to Python, WGRIB2, and WGET executables on the
+# filesystem. See README for notes on WGRIB2 requirements. Specify where to send logfiles.
 ##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
+LOGDIR = '/Users/leecarlaw/scripts/meso/output/logs'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
 
@@ -18,30 +20,35 @@ SCALAR_PARAMS = {
     'mlcin': 'Mixed-Layer CIN (J/kg)',
     'mlcape': 'Mixed-Layer CAPE (J/kg)',
     'cape3km': '0-3 km MLCAPE (J/kg)',
-    'estp': 'Effective SigTor Parameter'
+    'estp': 'Effective SigTor Parameter',
+    'srh500': '0-500 m Storm-Relative Helicity'
 }
 
 VECTOR_PARAMS = {
     'ebwd': 'Effective Bulk Shear (kt)',
     'shr1': 'Surface to 1 km shear (kt)',
     'shr3': 'Surface to 3 km shear (kt)',
-    'devtor': 'Deviant Tornado Motion (kt)',
     'rm5': 'Bunkers Right Motion Vectors',
     'lm5': 'Bunkers Left Motion Vectors',
+    'devtor': 'Deviant Tornado Motion (kt)',
 }
 
 ##########################################################################################
 # User overrides for plotting configurations. If not specified, plotting specifications
 # default to those in barbconfigs and contourconfigs.
 ##########################################################################################
-PLOTCONFIGS = {
+# URL or local path to wind icon files
+WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
+SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
+
+plotconfigs = {
     'esrh': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
         'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],
         'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
     },
     'shr1': {
-        'windicons': 'http://jupiter-dev.ngrok.io/shr1icons.png',
+        'windicons': SHEAR1_ICONS,
     },
     'mucape': {
         'colors': ['#ea908c', '#ea908c', '#da453a', '#da453a', '#da453a', '#c03c32',
@@ -79,7 +86,7 @@ PLOTCONFIGS = {
 ##########################################################################################
 barbconfigs = {
     'skip': 5,
-    'windicons': 'https://jupiter-dev.ngrok.io/windicons.png'
+    'windicons': WIND_ICONS
 }
 
 contourconfigs = {
@@ -96,8 +103,8 @@ contourconfigs = {
 # of the dictionary keys in the DATA_SOURCES variable.
 ##########################################################################################
 TIMEOUT = 180 # Seconds after which to timeout the data download function
-MINSIZE = 10 # Grib files under this size (MB) will result in a download error
-SIGMA = 1.5  # For smoothing function. Larger = more smoothing, but amplitude loss
+MINSIZE = 5   # Grib files under this size (MB) will result in a download error
+SIGMA = 1.5   # For smoothing function. Larger = more smoothing, but amplitude loss
 
 DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',

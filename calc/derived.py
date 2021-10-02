@@ -1,4 +1,5 @@
-"""Functions used during the parameter calculation steps. See sharptab.calcs.
+"""Functions used during the parameter calculation steps. See calc.compute and the
+`worker` function for specifics. 
 """
 
 from numba import njit
@@ -9,7 +10,13 @@ import sharptab.interp as interp
 import sharptab.winds as winds
 import sharptab.utils as utils
 import sharptab.params as params
-from sharptab.Vector import transform
+from calc.vector import transform
+
+@njit
+def srh500(prof):
+    RM5 = rm5(prof)
+    srh = winds.helicity(prof, 0, 500, stu=RM5[0], stv=RM5[1])[0]
+    return srh
 
 @njit
 def estp(mlcape, mlcin, esrh, ebwd_u, ebwd_v, mlpcl):

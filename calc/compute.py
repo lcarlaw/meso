@@ -1,64 +1,17 @@
+"""Contains functions to compute SHARPpy-specific and other derived meteorological
+variables.
+"""
+
 from numba import njit, prange
 from numba.typed import List, Dict
 from numba.core import types
-
-from collections import defaultdict
 import numpy as np
-from scipy.ndimage import gaussian_filter
-
-from multiprocessing import Pool
-import multiprocessing
 
 from configs import SCALAR_PARAMS, VECTOR_PARAMS, SIGMA
 import sharptab.profile as profile
 import sharptab.params as params
-from sharptab import derived
+from calc import derived
 from utils.timing import timeit
-
-def filter(data):
-    """
-    Perform smoothing and data filtering
-
-    Parameters:
-    -----------
-    data: list of dictionaries
-        A list of dictionaries, with each entry corresponding to a model time step or
-        forecast hour, containing the data to be filtered and smoothed
-
-    Returns:
-    --------
-    data: list of dictionaries
-        Filtered and smoothed data. Same form as input.
-    """
-
-    for t in range(len(data)):
-        vars = list(data[t].keys())
-        for v in vars:
-            if v in SCALAR_PARAMS.keys():
-                data[t][v] = gaussian_filter(data[t][v], sigma=SIGMA)
-
-        # Filter the effective bulk wind difference (< 20 kts)
-        idx = [i for i, s in enumerate(vars) if 'ebwd' in s]
-        if len(idx) > 0:
-            tmp = np.sqrt(data[t][vars[idx[0]]]**2 + data[t][vars[idx[0]]]**2)
-            data[t][vars[idx[0]]] = np.where(tmp < 20, 0, data[t][vars[idx[0]]])
-            data[t][vars[idx[1]]] = np.where(tmp < 20, 0, data[t][vars[idx[1]]])
-
-        # Filter the 0-1 km shear (< 10 kts)
-        idx = [i for i, s in enumerate(vars) if 'shr1' in s]
-        if len(idx) > 0:
-            tmp = np.sqrt(data[t][vars[idx[0]]]**2 + data[t][vars[idx[0]]]**2)
-            data[t][vars[idx[0]]] = np.where(tmp < 10, 0, data[t][vars[idx[0]]])
-            data[t][vars[idx[1]]] = np.where(tmp < 10, 0, data[t][vars[idx[1]]])
-
-        # Filter the 0-3 km shear (< 20 kts)
-        idx = [i for i, s in enumerate(vars) if 'shr3' in s]
-        if len(idx) > 0:
-            tmp = np.sqrt(data[t][vars[idx[0]]]**2 + data[t][vars[idx[0]]]**2)
-            data[t][vars[idx[0]]] = np.where(tmp < 20, 0, data[t][vars[idx[0]]])
-            data[t][vars[idx[1]]] = np.where(tmp < 20, 0, data[t][vars[idx[1]]])
-
-    return data
 
 float_array = types.float64[:,:] # No type expressions allowed in jitted functions
 @timeit
@@ -68,7 +21,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
     While numba massively speeds up our computations, we're limited in how we store and
     process our data. A dictionary registry of parameter calculations doesn't work, so
     instead, embed specific if blocks (CASE?) to direct our workflow appropriately, while
-    maintaining some degree of expandability to different parameters.
+    maintaining some degree of expandability to different parameters. This isn't ideal,
+    however.
 
     Parameters:
     -----------
@@ -101,6 +55,7 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
         key_type=types.unicode_type,
         value_type=float_array,
     )
+
     for scalar in SCALARS:
         d[scalar] = np.zeros((tmpc.shape[1], tmpc.shape[2]), dtype='float64')
     for vector in VECTORS:
@@ -119,11 +74,12 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
             mupcl = params.parcelx(prof, flag=3)
 
             # Scalars
-            if 'mlcape' in SCALARS: d['mlcape'][j,i] = mlpcl.bplus
-            if 'mlcin' in SCALARS: d['mlcin'][j,i] = mlpcl.bminus * -1
-            if 'mucape' in SCALARS: d['mucape'][j,i] = mupcl.bplus
-            if 'cape3km' in SCALARS: d['cape3km'][j,i] = mlpcl.b3km
             if 'esrh' in SCALARS: d['esrh'][j,i] = derived.esrh(prof, eff_inflow)
+            if 'mucape' in SCALARS: d['mucape'][j,i] = mupcl.bplus
+            if 'mlcin' in SCALARS: d['mlcin'][j,i] = mlpcl.bminus * -1
+            if 'mlcape' in SCALARS: d['mlcape'][j,i] = mlpcl.bplus
+            if 'cape3km' in SCALARS: d['cape3km'][j,i] = mlpcl.b3km
+            if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof)
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:

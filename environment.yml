@@ -31,8 +31,6 @@ dependencies:
   - libedit=3.1.20191231
   - libev=4.33
   - libffi=3.3
-  - libgfortran=5.0.0
-  - libgfortran5=9.3.0
   - liblapack=3.9.0
   - libllvm10=10.0.1
   - libnetcdf=4.7.4
@@ -86,4 +84,3 @@ dependencies:
     - pandas==1.2.3
     - pytz==2021.1
     - xarray==0.17.0
-prefix: /Users/leecarlaw/anaconda3/envs/meso

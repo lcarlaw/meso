@@ -10,14 +10,14 @@ import sharptab.winds as winds
 from configs import SCALAR_PARAMS, VECTOR_PARAMS, barbconfigs, contourconfigs, plotconfigs
 
 parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-#parent_path = os.path.dirname(script_path)
 
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
 outdir = "%s/output" % (parent_path)
 if not os.path.exists(outdir): os.makedirs(outdir)
 
 def contour(lon, lat, data, time_str, timerange_str, **kwargs):
-    """Contour plot using geojsoncontour.
+    """
+    Contour plot using geojsoncontour.
 
     Parameters:
     -----------
@@ -167,7 +167,8 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
 '''
 
 def write_placefile(arrs, realtime=False):
-    """Main function controlling the plotting of GR2/Analyst-readable placefiles. Called
+    """
+    Main function controlling the plotting of GR2/Analyst-readable placefiles. Called
     by the primary run.py script.
 
     Parameters:

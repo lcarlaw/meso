@@ -10,9 +10,6 @@ import calc.compute as compute
 import calc.filtering as filtering
 import sharptab.interp as interp
 import sharptab.winds as winds
-#import utils.plot_hodos as plot_hodos
-#import utils.hodographs as hodographs
-#import utils.plot as plot
 from utils.timing import timeit
 
 from plot.plots import write_placefile
@@ -68,6 +65,8 @@ def create_placefiles(data, realtime=False):
 
     # Final filter (smoothing and masking logic) and plotting/placefiles.
     plot_arrays = filtering.filter(plot_arrays)
+
+    # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)
 
 def query_files(filepath):

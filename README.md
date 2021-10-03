@@ -15,8 +15,8 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-- [ ] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)
-- [ ] Improve download execution for archived THREDDS requests
+- [X] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)
+- [X] Improve download execution for archived THREDDS requests
 - [ ] Build simple cressman or barnes surface analysis?
 - [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations.
 - [ ] Figure out GR's polygon fill rules: stripes on contour-filled plots?
@@ -35,13 +35,13 @@ Run the following to create an Anaconda environment called `meso` with the requi
 conda env create -f environment.yml
 ```
 
-### Dependencies and config files
-You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file.
+### Dependencies and config file alterations
+You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file. Specify a location for logfile output via the `LOG_DIR` variable.
 
-If you want to run this in realtime mode, specify the `PYTHON` variable to point to the particular anaconda `meso` environment (or whatever you named it) on your filesystem.
+If you want to run this in realtime mode (see section below), specify the `PYTHON` variable to point to the particular anaconda `meso` environment (or whatever you named it) on your filesystem.
 
 #### Installing the latest WGRIB2 binary
-Wgrib2 version 3.0.2 or higher is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is needed if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing binaries on your local machine apply.
+Wgrib2 version 3.0.2 or higher is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is needed if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing external libraries on your local machine apply.
 
 ```
 brew install gcc@9
@@ -54,26 +54,26 @@ export FC=gfortran-9
 make -j4
 ```
 
-If `make` is successful, you should have an executable `wgrib2` binary in the `etc/grib2/wgrib2/` directory.
+If `make` is successful, you should have an executable `wgrib2` file in the `etc/grib2/wgrib2/` directory.
 
-If desired, you can then softlink this into the standard location on most file systems with a `sudo ln -s etc/grib2/wgrib2/wgrib2 /usr/local/bin`. Either way, update the `WGRIB2` variable in the `configs.py` file to point to the `WGRIB2` binary location.
+If desired, you can then softlink this into the standard location on most file systems with a `sudo ln -s etc/grib2/wgrib2/wgrib2 /usr/local/bin`. Either way, update the `WGRIB2` variable in the `configs.py` file to point to the `WGRIB2` executable's location.
 
 #### Set the perl scripts to executable
-Before being able to cron the driver script, you may also have to type: `chmod +x IO/*.pl` within the parent meso directory.
+Before being able to cron the driver script, you may also have to type: `chmod +x IO/*.pl` within the parent meso directory to make the various perl scripts executable.
 
 ## Running in real time
 We can avoid the use of the system's cron-scheduler and issues with system `$PATH` variables by using the `schedule` module in Python.
 
 The `run.py` script is setup to activate the `get_data.py` module at :54 after each hour. In realtime mode, this downloads real time 13-km RAP data for all runs except at 00 and 12z when HRRR data are used (the 00 and 12z RAP cycles are delayed by ~30 minutes to assimilate some RAOBs). Both are on the native hybrid-sigma coordinate system to maximize the number of model levels near the surface to improve SHARPpy's lifting calculations. The HRRR runs are upscaled to the 13-km RAP horizontal grid-spacing. 1 and 2-hour forecasts are linearly interpolated in time to produce a 1.5 hour forecast to update meteorological parameters three times per hour.
 
-To automate, type:
+Assuming all variable `PATHs` have been set correctly in the `config.py` file, to automate, type:
 
 ```
 conda activate meso
 python run.py
 ```
 
-Important log files will be located in the `logs` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
+Important log files will be located in the `LOG_DIR` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
 
 ##  Adding parameters
 Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. The key-value pairs will be used for the placefile name and verbose info string, respectively. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary with each key needing to match a key in either `SCALAR_PARAMS` or `VECTOR_PARAMS`.
@@ -86,7 +86,7 @@ Suppose we want to add 0-500 m Storm-Relative Helicity as a placefile. To do thi
 ```
 'srh500': '0-500 m Storm-Relative Helicity'
 ```
-2. Add a function to the `calc.derived.py` file:
+2. Add a function to the `calc.derived.py` file. For example:
 ```
 @njit
 def srh500(prof):
@@ -98,7 +98,10 @@ def srh500(prof):
 ```
 if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof, eff_inflow)
 ```
-4. If desired, specify contouring configurations in the `PLOTCONFIGS` dictionary within the `configs.py` file. The dictionary key must match the key we used in step 1.
+4. Specify contouring configurations in the `PLOTCONFIGS` dictionary within the `configs.py` file. The dictionary key must match the key we used in step 1. If no entry is providing, plotting parameters will be specified via the `barbconfigs` or `contourconfigs` dictionaries.
+
+## Specifying multi-parameter placefile bundles  
+It is possible to load multiple placefiles with one entry by concatenating placefiles together. To turn this feature on, add entries to the `BUNDLES` dictionary in the `configs.py` file. The individual parameter names must match dictionary keys in the `SCALAR_PARAMS` or `VECTOR_PARAMS` dictionaries.
 
 ## Creating an archived case
 ### Download the model data

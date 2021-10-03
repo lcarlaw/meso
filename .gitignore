@@ -1,8 +1,7 @@
 **/IO/data
 **junk
 __pycache__/
-**/sharptab/__pycache__/
-**/utils/__pycache__/
+**/__pycache__/
 .DS_Store
 Thumbs.db
 download_status.txt

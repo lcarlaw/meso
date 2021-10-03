@@ -26,17 +26,17 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
 
     Parameters:
     -----------
-    pres: numpy array
+    pres: array_like
         Array of pressure values (MB) [z,y,x]
-    tmpc: numpy array
+    tmpc: array_like
         Array of temperature values (C) [z,y,x]
-    hght: numpy array
+    hght: array_like
         Array of geopotential height values (m) [z,y,x]
-    dwpc: numpy array
+    dwpc: array_like
         Array of dewpoint values (C) [z,y,x]
-    wspd: numpy array
+    wspd: array_like
         Array of wind speed values (KTS) [z,y,x]
-    wdir: numpy array
+    wdir: array_like
         Array of wind direction values (DEG) [z,y,x]
     SCALARS: Numba typed List
         Scalar parameter keys, passed in from SCALAR_PARAMS in the config file
@@ -74,12 +74,20 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
             mupcl = params.parcelx(prof, flag=3)
 
             # Scalars
-            if 'esrh' in SCALARS: d['esrh'][j,i] = derived.esrh(prof, eff_inflow)
-            if 'mucape' in SCALARS: d['mucape'][j,i] = mupcl.bplus
-            if 'mlcin' in SCALARS: d['mlcin'][j,i] = mlpcl.bminus * -1
-            if 'mlcape' in SCALARS: d['mlcape'][j,i] = mlpcl.bplus
-            if 'cape3km' in SCALARS: d['cape3km'][j,i] = mlpcl.b3km
-            if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof)
+            if 'esrh' in SCALARS:
+                d['esrh'][j,i] = derived.srh(prof, effective_inflow_layer=eff_inflow)
+            if 'mucape' in SCALARS:
+                d['mucape'][j,i] = mupcl.bplus
+            if 'mlcin' in SCALARS:
+                d['mlcin'][j,i] = mlpcl.bminus * -1
+            if 'mlcape' in SCALARS:
+                d['mlcape'][j,i] = mlpcl.bplus
+            if 'cape3km' in SCALARS:
+                d['cape3km'][j,i] = mlpcl.b3km
+            if 'srh500' in SCALARS:
+                d['srh500'][j,i] = derived.srh(prof, lower=0, upper=500)
+            if 'lr03km' in SCALARS:
+                d['lr03km'][j,i] = derived.lapse_rate(prof, lower=2, upper=3000)
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:

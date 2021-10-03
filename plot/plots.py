@@ -5,12 +5,13 @@ import json
 import os
 from datetime import timedelta
 from collections import defaultdict
+import logging as log
 
 import sharptab.winds as winds
-from configs import SCALAR_PARAMS, VECTOR_PARAMS, barbconfigs, contourconfigs, plotconfigs
+from configs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, barbconfigs, contourconfigs,
+                     plotconfigs)
 
 parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
 outdir = "%s/output" % (parent_path)
 if not os.path.exists(outdir): os.makedirs(outdir)
@@ -243,6 +244,18 @@ def write_placefile(arrs, realtime=False):
         else:
             out_file = '%s/%s.txt' % (outdir, parm)
         with open(out_file, 'w') as f: f.write("".join(output))
+
+    # If entries exist in the BUNDLES dictionary, output bundled placefiles
+    for bundle_name, parameters in BUNDLES.items():
+        log.info("Writing bundle: %s with components: %s" % (bundle_name, parameters))
+        out_file = '%s/%s.txt' % (outdir, bundle_name)
+        with open(out_file, 'w') as f:
+            for parm in parameters:
+                try:
+                    infile = open('%s/%s.txt' % (outdir, parm), 'r')
+                    f.write(infile.read())
+                except IOError:
+                    log.error("%s not found. Skipped during bundling step" % (infile))
 
 def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
     iconfile = kwargs.get('windicons', 'Missing: Specify `WIND_ICONDS` in cofigs.py!')

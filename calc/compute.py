@@ -86,6 +86,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
                 d['cape3km'][j,i] = mlpcl.b3km
             if 'srh500' in SCALARS:
                 d['srh500'][j,i] = derived.srh(prof, lower=0, upper=500)
+            if 'srh01km' in SCALARS:
+                d['srh01km'][j,i] = derived.srh(prof, lower=0, upper=1000)
             if 'lr03km' in SCALARS:
                 d['lr03km'][j,i] = derived.lapse_rate(prof, lower=2, upper=3000)
 
@@ -96,6 +98,10 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
                 d['shr1_u'][j,i], d['shr1_v'][j,i] = derived.bulk_shear(prof, height=1000)
             if 'shr3' in VECTORS:
                 d['shr3_u'][j,i], d['shr3_v'][j,i] = derived.bulk_shear(prof, height=3000)
+            if 'shr6' in VECTORS:
+                d['shr6_u'][j,i], d['shr6_v'][j,i] = derived.bulk_shear(prof, height=6000)
+            if 'shr8' in VECTORS:
+                d['shr8_u'][j,i], d['shr8_v'][j,i] = derived.bulk_shear(prof, height=8000)
             if 'rm5' in VECTORS:
                 d['rm5_u'][j,i], d['rm5_v'][j,i] = derived.rm5(prof)
             if 'lm5' in VECTORS:

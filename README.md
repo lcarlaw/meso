@@ -15,13 +15,13 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-- [X] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)
-- [X] Improve download execution for archived THREDDS requests
 - [ ] Build simple cressman or barnes surface analysis?
 - [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations.
 - [ ] Figure out GR's polygon fill rules: stripes on contour-filled plots?
 - [ ] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file
 - [ ] Add capability to output images (.tif, high-res .png) of mesoanalysis parameters & upper-air variables
+- [X] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)
+- [X] Improve download execution for archived THREDDS requests
 - [X] Build in automated checks for hung processes in the `run.py` driver
 - [X] Add better error logging to the download step
 

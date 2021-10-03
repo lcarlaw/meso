@@ -22,6 +22,7 @@ SCALAR_PARAMS = {
     'cape3km': '0-3 km MLCAPE (J/kg)',
     'estp': 'Effective SigTor Parameter',
     'srh500': '0-500 m Storm-Relative Helicity',
+    'srh01km': '0-1 km Storm-Relative Helicity',
     'lr03km': '0-3 km Lapse Rate (C/km)'
 }
 
@@ -29,6 +30,8 @@ VECTOR_PARAMS = {
     'ebwd': 'Effective Bulk Shear (kt)',
     'shr1': 'Surface to 1 km shear (kt)',
     'shr3': 'Surface to 3 km shear (kt)',
+    'shr6': 'Surface to 6 km shear (kt)',
+    'shr8': 'Surface to 8 km shear (kt)',
     'rm5': 'Bunkers Right Motion Vectors',
     'lm5': 'Bunkers Left Motion Vectors',
     'devtor': 'Deviant Tornado Motion (kt)',
@@ -54,6 +57,12 @@ plotconfigs = {
     },
 
     'esrh': {
+        'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
+        'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],
+        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
+    },
+
+    'srh01km': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
         'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],
         'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]

@@ -38,13 +38,7 @@ def lapse_rate(prof, lower=0, upper=3000):
     tv1 = interp.vtmp(prof, p1)
     tv2 = interp.vtmp(prof, p2)
     return (tv2 - tv1) / (z2 - z1) * -1000.
-
-#@njit
-#def srh500(prof):
-#    RM5 = rm5(prof)
-#    srh = winds.helicity(prof, 0, 500, stu=RM5[0], stv=RM5[1])[0]
-#    return srh
-
+    
 # Can we merge esrh and srh500 calculations with a generic function for both?
 @njit
 def srh(prof, lower=None, upper=None, effective_inflow_layer=None):

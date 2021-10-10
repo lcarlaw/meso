@@ -9,3 +9,5 @@ download_status.txt
 /output/logs/
 *.pyc
 tests/
+test_filtering.py
+test.py

@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from utils.cmd import execute
 from utils.timing import timeit
 from utils.logs import logfile
-from configs import PYTHON
+from configs import PYTHON, MAXSECONDS
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 log = logfile('main')
@@ -39,12 +39,12 @@ def download_data():
         model_flag = '-m HRRR'
 
     data_path = "%s/IO/data" % (script_path)
-    while not loop_is_done and delta < 1800:
+    while not loop_is_done and delta < MAXSECONDS:
         # If we're > 15 minutes delayed, switch to using the HRRR. If the NOMADS/FTPPRD
         # sites are down, it's possible (likely?) that the HRRR is still being pushed to
         # the Google Cloud and this will be caught in get_data.py.
-        if delta >= 900: model_flag = '-m HRRR'
-
+        #if delta >= 900: model_flag = '-m HRRR'
+        
         # Download data
         arg = "%s %s/get_data.py -rt %s -n 2 -p %s" % (PYTHON, script_path, model_flag,
                                                        data_path)

@@ -37,6 +37,7 @@ VECTOR_PARAMS = {
     'devtor': 'Deviant Tornado Motion (kt)',
 }
 
+# Need to correct placefile info string
 BUNDLES = {
     'bundle_1': ['cape3km', 'shr3'],
 }
@@ -96,7 +97,7 @@ plotconfigs = {
         'colors': ['#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
                    '#bb2d1d', '#841f18', '#841f18'],
         'levels': [25, 50, 75, 100, 125, 150, 300, 500],
-        'linewidths': [1, 2, 3, 3, 3, 3, 4, 4]
+        'linewidths': [1, 1, 1, 2, 2, 3, 3, 3]
     },
 
     'mlcin': {
@@ -129,14 +130,59 @@ contourconfigs = {
 }
 
 ##########################################################################################
+# Filtering specifications
+##########################################################################################
+FILTER_SPECS = {
+    'mlcin': {
+        'mlcape': ['>', 25],
+    },
+
+    'ebwd': {
+        'ebwd': ['>', 20],
+    },
+
+    'shr1': {
+        'shr1': ['>', 15],
+    },
+
+    'shr3': {
+        'shr3': ['>', 20],
+    },
+
+    'shr6': {
+        'shr3': ['>', 20],
+    },
+
+    'shr8': {
+        'shr3': ['>', 25],
+    },
+
+    'rm5': {
+        'mucape': ['>', 100],
+        'ebwd': ['>', 25],
+    },
+
+    'lm5': {
+        'mucape': ['>', 100],
+        'ebwd': ['>', 25],
+    },
+
+    'devtor': {
+        'mucape': ['>', 100],
+        'ebwd': ['>', 25],
+    },
+}
+
+##########################################################################################
 # Download configurations
 #
 # You likely won't need (or want) to change these. Download priority is set by the order
 # of the dictionary keys in the DATA_SOURCES variable.
 ##########################################################################################
-TIMEOUT = 180 # Seconds after which to timeout the data download function
-MINSIZE = 5   # Grib files under this size (MB) will result in a download error
-SIGMA = 1.5   # For smoothing function. Larger = more smoothing, but amplitude loss
+TIMEOUT = 180       # Seconds after which to timeout the data download function
+MAXSECONDS = 1800   # Number of seconds after which to abort data download in run.py
+MINSIZE = 5         # Grib files under this size (MB) will result in a download error
+SIGMA = 1.5         # For smoothing function. Larger = more smoothing, but amplitude loss
 
 DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',

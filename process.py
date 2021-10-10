@@ -64,6 +64,7 @@ def create_placefiles(data, realtime=False):
             plot_arrays[i][item] = data[i][item]
 
     # Final filter (smoothing and masking logic) and plotting/placefiles.
+    log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
 
     # Writing to placefiles

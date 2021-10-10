@@ -5,7 +5,7 @@
 from numba import njit
 import numpy as np
 
-from sharptab.constants import MS2KTS
+from sharptab.constants import MS2KTS, KTS2MS
 import sharptab.interp as interp
 import sharptab.winds as winds
 import sharptab.utils as utils
@@ -38,7 +38,7 @@ def lapse_rate(prof, lower=0, upper=3000):
     tv1 = interp.vtmp(prof, p1)
     tv2 = interp.vtmp(prof, p2)
     return (tv2 - tv1) / (z2 - z1) * -1000.
-    
+
 @njit
 def srh(prof, lower=None, upper=None, effective_inflow_layer=None):
     """
@@ -70,9 +70,12 @@ def srh(prof, lower=None, upper=None, effective_inflow_layer=None):
     return srh
 
 @njit
-def estp(mlcape, mlcin, esrh, ebwd_u, ebwd_v, mlpcl):
+def estp(mlcape, mlcin, esrh, ebwd_u, ebwd_v, mlpcl, eff_inflow_base, prof):
     eshr = utils.mag(ebwd_u, ebwd_v)
-    estp = params.stp_cin(mlcape, esrh, eshr, mlpcl.lclhght, mlcin)
+    estp = params.stp_cin(mlcape, esrh, eshr*KTS2MS, mlpcl.lclhght, mlcin)
+
+    ebot = interp.to_agl(prof, interp.hght(prof, eff_inflow_base))
+    if ebot > 10 or ~np.isfinite(ebot): estp = 0.
     return estp
 
 @njit

@@ -71,7 +71,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     clabs = defaultdict(list) # Store contour labels
     for feature in geojson['features']:
         coords = feature['geometry']['coordinates']
-        level = '%s' % (feature['properties']['level-value'])
+        level = '%s' % (round(feature['properties']['level-value'], 1))
         idx = feature['properties']['level-index']
         if int(levels[idx]) == int(float(level)):
             try:
@@ -96,7 +96,8 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     # Contour labels
     for lev in clabs.keys():
         for val in clabs[lev]:
-            out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], int(float(lev))))
+            if float(lev) >= 9: lev = int(lev)
+            out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
 
     plt.close(fig)
     return out

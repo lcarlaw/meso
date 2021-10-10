@@ -90,6 +90,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
                 d['srh01km'][j,i] = derived.srh(prof, lower=0, upper=1000)
             if 'lr03km' in SCALARS:
                 d['lr03km'][j,i] = derived.lapse_rate(prof, lower=2, upper=3000)
+            if 'mllcl' in SCALARS:
+                d['mllcl'][j,i] = mlpcl.lclhght
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:
@@ -111,11 +113,12 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
 
             # Special parameters: prohibitive to re-compute all of the inputs...
             if 'estp' in SCALARS: d['estp'][j,i] = derived.estp(d['mlcape'][j,i],
-                                                                d['mlcin'][j,i],
+                                                                mlpcl.bminus,
                                                                 d['esrh'][j,i],
                                                                 d['ebwd_u'][j,i],
                                                                 d['ebwd_v'][j,i],
-                                                                mlpcl)
+                                                                mlpcl, eff_inflow[0],
+                                                                prof)
     return d
 
 def sharppy_calcs(**kwargs):

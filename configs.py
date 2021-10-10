@@ -23,7 +23,8 @@ SCALAR_PARAMS = {
     'estp': 'Effective SigTor Parameter',
     'srh500': '0-500 m Storm-Relative Helicity',
     'srh01km': '0-1 km Storm-Relative Helicity',
-    'lr03km': '0-3 km Lapse Rate (C/km)'
+    'lr03km': '0-3 km Lapse Rate (C/km)',
+    'mllcl': 'Mixed-Layer LCL (m)'
 }
 
 VECTOR_PARAMS = {
@@ -51,6 +52,10 @@ WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
 SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
 
 plotconfigs = {
+    'mllcl': {
+        'levels': [250, 500, 1000, 1500, 2000, 3000]
+    },
+
     'lr03km': {
         'colors': ['#659d53', '#ec8637', '#da473d', '#da473d', '#da473d'],
         'levels': [6, 7, 8, 9, 10],

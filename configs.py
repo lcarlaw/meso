@@ -29,23 +29,28 @@ SCALAR_PARAMS = {
 
 VECTOR_PARAMS = {
     'ebwd': 'Effective Bulk Shear (kt)',
-    'shr1': 'Surface to 1 km shear (kt)',
-    'shr3': 'Surface to 3 km shear (kt)',
-    'shr6': 'Surface to 6 km shear (kt)',
-    'shr8': 'Surface to 8 km shear (kt)',
-    'rm5': 'Bunkers Right Motion Vectors',
-    'lm5': 'Bunkers Left Motion Vectors',
+    'shr1': '0-1 km shear (kt)',
+    'shr3': '0-3 km shear (kt)',
+    'shr6': '0-6 km shear (kt)',
+    'shr8': '0-8 km shear (kt)',
+    'rm5': 'Bunkers Right Vectors (kt)',
+    'lm5': 'Bunkers Left Vectors (kt)',
     'devtor': 'Deviant Tornado Motion (kt)',
 }
 
 # Need to correct placefile info string
 BUNDLES = {
-    'bundle_1': ['cape3km', 'shr3'],
+    'QLCS Tornado': ['lr03km_cf', 'lr03km', 'estp', 'shr3']
+#    'bundle_1': ['cape3km', 'shr3'],
+#    'low-level-lapse-rates': ['lr03km', 'lr03km_cf']
 }
 
 ##########################################################################################
 # User overrides for plotting configurations. If not specified, plotting specifications
 # default to those in barbconfigs and contourconfigs.
+#
+# Specifying either the `fill_levels` or `fill_colors` keywords will cause a separate
+# contour-filled placefile to be output. These will have `_cf` appended to the filename.
 ##########################################################################################
 # URL or local path to wind icon files
 WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
@@ -56,28 +61,33 @@ plotconfigs = {
         'levels': [250, 500, 1000, 1500, 2000, 3000]
     },
 
+    # Contour-filled 0-3 km lapse rates
     'lr03km': {
-        'colors': ['#659d53', '#ec8637', '#da473d', '#da473d', '#da473d'],
-        'levels': [6, 7, 8, 9, 10],
-        'linewidths': [1, 2, 2, 2, 2]
+        #'colors': ['#659d53', '#ec8637', '#da473d', '#da473d', '#da473d'],
+        'colors': 'k',
+        'levels': [6, 6.5, 7, 8, 9, 10],
+        #'linewidths': [1, 2, 2, 2, 2],
+        'linewidths': 0.75,
+        'fill_levels': [6.5, 999],
+        'fill_colors': ['#f1a95d', '#f1a95d']
     },
 
     'esrh': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
         'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],
-        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
+        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 3]
     },
 
     'srh01km': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
         'levels': [50, 100, 200, 300, 400, 500, 600, 700, 800],
-        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
+        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 3]
     },
 
     'srh500': {
         'colors': ['#81b6f7', '#81b6f7', '#3c6193', '#3c6193', '#3c6193', '#3c6193'],
         'levels': [25, 50, 100, 200, 300, 400, 500, 600, 800],
-        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 4]
+        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3, 3]
     },
 
     'shr1': {
@@ -102,19 +112,20 @@ plotconfigs = {
         'colors': ['#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
                    '#bb2d1d', '#841f18', '#841f18'],
         'levels': [25, 50, 75, 100, 125, 150, 300, 500],
-        'linewidths': [1, 1, 1, 2, 2, 3, 3, 3]
+        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3]
     },
 
     'mlcin': {
-        'colors': ['#6beaea', '#4eb0e7', '#0000cf'],
-        'levels': [25, 75, 150, 999],
+        'colors': ['#6beaea', '#4eb0e7', '#0000cf', '#0000cf', '#0000cf'],
+        'levels': [25, 75, 150, 300],
+        'linewidths': [1, 1, 1, 2, 2],
     },
 
     'estp': {
         'levels': [0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         'colors': ['#ec904a', '#ec904a', '#ec904a', '#e94639', '#e94639', '#c23f34',
                    '#c23f34', '#841f18', '#841f18', '#841f18', '#957cca', '957cca'],
-        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4]
+        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3]
     },
 }
 
@@ -124,14 +135,16 @@ plotconfigs = {
 ##########################################################################################
 barbconfigs = {
     'skip': 5,
-    'windicons': WIND_ICONS
+    'windicons': WIND_ICONS,
 }
 
 contourconfigs = {
     'colors': ['#dd564e', '#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
                '#bb2d1d', '#841f18', '#841f18'],
     'levels': [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000],
-    'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4]
+    'linewidths': [1, 1, 1, 2, 2, 2, 3, 4, 4],
+    'fill_levels': None,
+    'fill_colors': None,
 }
 
 ##########################################################################################
@@ -139,7 +152,7 @@ contourconfigs = {
 ##########################################################################################
 FILTER_SPECS = {
     'mlcin': {
-        'mlcape': ['>', 25],
+        'mlcape': ['>', 5],
     },
 
     'ebwd': {
@@ -188,6 +201,7 @@ TIMEOUT = 180       # Seconds after which to timeout the data download function
 MAXSECONDS = 1800   # Number of seconds after which to abort data download in run.py
 MINSIZE = 5         # Grib files under this size (MB) will result in a download error
 SIGMA = 1.5         # For smoothing function. Larger = more smoothing, but amplitude loss
+ALPHA = 60          # Alpha level for filled placefiles. 0 = transparent; 255 = opaque
 
 DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',
@@ -209,3 +223,4 @@ THREDDS_CONFIGS = {
 
 vars = ':(HGT|TMP|SPFH|UGRD|VGRD|PRES):'
 grid_info = 'lambert:262.5:38.5 -105:240:13545.000000 25:210:13545.000000'
+#grid_info = 'lambert:262.5:38.5 -120:360:13545.000000 23:210:13545.000000'

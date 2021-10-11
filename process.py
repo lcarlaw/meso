@@ -41,9 +41,15 @@ def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
         hodo_data['model_name'] = arr['model_name']
 
         if sfc_wind:
-            sfc_wind = parse_vector(sfc_wind)
-            sfc_wind = winds.vec2comp(sfc_wind[0], sfc_wind[1])
-            hodo_data['uwnd'][0], hodo_data['vwnd'][0] = sfc_wind[0], sfc_wind[1]
+            surface_wind = parse_vector(sfc_wind)
+            surface_wind = winds.vec2comp(surface_wind[0], surface_wind[1])
+            hodo_data['uwnd'][0], hodo_data['vwnd'][0] = surface_wind[0], surface_wind[1]
+
+            # Linearly interpolate the surface wind through the first 4 model levels
+            hodo_data['uwnd'][1:4] = np.interp([1,2,3], [0, 4], [hodo_data['uwnd'][0],
+                                                                 hodo_data['uwnd'][3]])
+            hodo_data['vwnd'][1:4] = np.interp([1,2,3], [0, 4], [hodo_data['vwnd'][0],
+                                                                 hodo_data['vwnd'][3]])
 
         params = compute_parameters(hodo_data, storm_motion)
         plot_hodograph(hodo_data, params, storm_relative=storm_relative)

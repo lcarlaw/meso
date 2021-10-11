@@ -9,5 +9,9 @@ download_status.txt
 /output/logs/
 *.pyc
 tests/
+winter_tests.py
 test_filtering.py
 test.py
+test.txt
+placefile_tests.py
+calc/winter.py

@@ -16,10 +16,13 @@ def eval_binary(op1, oper, op2, val):
     }
     return np.where(ops[oper](op1, op2), val, np.nan)
 
-def execute_filtering(data):
+def _execute_filtering(data):
     """
     Helper function to perform the filtering of a particular parameter based on any number
     of additional parameters.
+
+    If a bad parameter is passed (i.e. one that's not specified in the config file or
+    misstyped, etc.), no actions are performed on the data dictionary.
 
     Parameters:
     -----------
@@ -91,7 +94,7 @@ def filter(data):
         # Smooth the scalar parameter fields. SIGMA specified in the configs.py file.
         for v in vars_:
             if v in SCALAR_PARAMS.keys():
-                data[t][v] = gaussian_filter(data[t][v], sigma=SIGMA)
+                data[t][v] = gaussian_filter(data[t][v], sigma=SIGMA, mode='nearest')
 
-    data = execute_filtering(data)
+    data = _execute_filtering(data)
     return data

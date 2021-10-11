@@ -53,7 +53,7 @@ def components(prof, p):
     -------
     U and V components at the given pressure (kts) : number, numpy array
     """
-    # Note: numpy's interpoloation routine expects the interpoloation
+    # Note: numpy's interpoloation routine expects the interpolation
     # routine to be in ascending order. Because pressure decreases in the
     # vertical, we must reverse the order of the two arrays to satisfy
     # this requirement.
@@ -110,7 +110,7 @@ def dwpt(prof, p):
     -------
     Dew point tmperature (C) at the given pressure : number, numpy array
     """
-    # Note: numpy's interpoloation routine expects the interpoloation
+    # Note: numpy's interpoloation routine expects the interpolation
     # routine to be in ascending order. Because pressure decreases in the
     # vertical, we must reverse the order of the two arrays to satisfy
     # this requirement.
@@ -131,7 +131,7 @@ def temp(prof, p):
     -------
     Temperature (C) at the given pressure : number, numpy array
     """
-    # Note: numpy's interpoloation routine expects the interpoloation
+    # Note: numpy's interpoloation routine expects the interpolation
     # routine to be in ascending order. Because pressure decreases in the
     # vertical, we must reverse the order of the two arrays to satisfy
     # this requirement.
@@ -152,7 +152,7 @@ def hght(prof, p):
     -------
     Height (m) at the given pressure : number, numpy array
     """
-    # Note: numpy's interpoloation routine expects the interpoloation
+    # Note: numpy's interpoloation routine expects the interpolation
     # routine to be in ascending order. Because pressure decreases in the
     # vertical, we must reverse the order of the two arrays to satisfy
     # this requirement.

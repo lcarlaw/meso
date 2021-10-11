@@ -3,13 +3,13 @@ import numpy as np
 import geojsoncontour
 import json
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 from collections import defaultdict
 import logging as log
 
 import sharptab.winds as winds
 from configs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, barbconfigs, contourconfigs,
-                     plotconfigs)
+                     plotconfigs, ALPHA)
 
 parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
@@ -22,11 +22,11 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
     Parameters:
     -----------
-    lon : array
+    lon : array_like
         2-D array of longitudes. Must be same shape as data
-    lat : array
+    lat : array_like
         2-D array of latitudes. Must be same shape as data
-    data : array [N, M]
+    data : array_like [N, M]
         Values over which contour is drawn.
     time_str : string
         Valid time for this plot. Included in the placefile title.
@@ -48,6 +48,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     --------
     out : list
         List of strings, each corresponding to a new line for the placefile
+
     """
 
     fig = plt.figure()
@@ -56,6 +57,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     levels = kwargs.get('levels')
     colors = kwargs.get('colors')
     plotinfo = kwargs.get('varname', 'None')
+
     if levels is not None and colors is not None:
         c = ax.contour(lon, lat, data, levels, colors=colors)
     else:
@@ -64,7 +66,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
     out = []
     out.append('Title: %s | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 60\n')
+    out.append('RefreshSeconds: 5\n')
     out.append('Font: 1, 14, 1, "Arial"\n')
     out.append('TimeRange: %s\n' % (timerange_str))
 
@@ -84,7 +86,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
         rgb = hex2rgb(feature['properties']['stroke'])
         out.append('Color: %s 255\n' % (' '.join(rgb)))
-        out.append('Line: %s, 0, "%s"\n' % (linewidth, level))
+        out.append('Line: %s, 0, "%s: %s"\n' % (linewidth, plotinfo, level))
 
         KNT = 0
         for coord in coords:
@@ -102,18 +104,16 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     plt.close(fig)
     return out
 
-'''
-# Kill this one for now. Figure out rotation order for placefile polygons
 def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     """Contour-filled plot using geojsoncontour.
 
     Parameters:
     -----------
-    lon : array
+    lon : array_like
         2-D array of longitudes. Must be same shape as data
-    lat : array
+    lat : array_like
         2-D array of latitudes. Must be same shape as data
-    data : array [N, M]
+    data : array_like [N, M]
         Values over which contour fill is drawn
     time_str : string
         Valid time for this plot. Included in the placefile title
@@ -133,21 +133,22 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     --------
     out : list
         List of strings, each corresponding to a new line for the placefile
+
     """
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    levels = kwargs.get('levels')
-    colors = kwargs.get('colors')
-    plotinfo = kwargs.get('varname', 'None')
+    levels = kwargs.get('fill_levels')
+    colors = kwargs.get('fill_colors')
 
+    plotinfo = kwargs.get('varname', 'None')
     c = ax.contourf(lon, lat, data, levels, colors=colors)
-    geojson = json.loads(geojsoncontour.contourf_to_geojson(contourf=c, ndigits=8))
+    geojson = json.loads(geojsoncontour.contourf_to_geojson(contourf=c, ndigits=15))
 
     out = []
-    out.append('Title: %s Filled Contour %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 60\n')
+    out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
+    out.append('RefreshSeconds: 5\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     for feature in geojson['features']:
         rgb = hex2rgb(feature['properties']['fill'])
@@ -157,7 +158,7 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
             first_line = True
             for item in group[0]:
                 if first_line:
-                    COLOR ='%s, %s\n' % (', '.join(rgb), ALPHA)
+                    COLOR ='%s, %s' % (', '.join(rgb), ALPHA)
                 else:
                     COLOR = ''
                 out.append(' %s, %s, %s\n' % (item[1], item[0], COLOR))
@@ -166,7 +167,6 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
             out.append('\n')
     plt.close(fig)
     return out
-'''
 
 def write_placefile(arrs, realtime=False):
     """
@@ -175,7 +175,7 @@ def write_placefile(arrs, realtime=False):
 
     Parameters:
     -----------
-    arrs : [dictionary]
+    arrs : dictionary
         List of dictionaries storing values necessary for plotting. This includes
         longitudes, latitudes, valid times, and any 2-d arrays. Each list entry
         corresponds to a new forecast time.
@@ -194,26 +194,30 @@ def write_placefile(arrs, realtime=False):
     for i in range(len(arrs)):
         arr = arrs[i]
         lon, lat = arr['lons'], arr['lats']
-        valid_str = arr['valid_time'].strftime('%H:%MZ %a %b %d %Y')
+        valid_str = "Valid: %s" % (arr['valid_time'].strftime('%H:%MZ %a %b %d %Y'))
 
         # Construct the time range string
-        if realtime:
+        if realtime is True:
             start = arr['valid_time'] - timedelta(minutes=15)
             end = arr['valid_time'] + timedelta(minutes=15)
-        else:
+        elif not realtime:
             start = arr['valid_time'] - timedelta(seconds=1799)
             end = arr['valid_time'] + timedelta(seconds=1800)
+        else:   # For special testing mode.
+            start = datetime(2021, 1, 1, 0)
+            end = datetime(2300, 1, 1, 0)
 
         timerange_str = "%s %s" % (start.strftime('%Y-%m-%dT%H:%M:%SZ'),
                                    end.strftime('%Y-%m-%dT%H:%M:%SZ'))
-        time_str = "%sZ RAP" % (str(arr['cycle_time'].hour).zfill(2))
+        #time_str = "%sZ RAP" % (str(arr['cycle_time'].hour).zfill(2))
+
+        out_parms = []
         for parm in parms:
-            matches = [s for s in arr.keys() if parm in s]
-            if len(matches) > 1:
+            plot_type = None
+            if parm in VECTOR_PARAMS.keys():
                 plot_type = 'barb'
                 base_configs = barbconfigs
             else:
-                plot_type = 'contour'
                 base_configs = contourconfigs
 
             # Add any user-requested ploting configurations to the base. Add the variable
@@ -224,19 +228,39 @@ def write_placefile(arrs, realtime=False):
                 configs.update(config_overrides)
             configs['varname'] = PARAMS[parm]
 
+            # If plot_type hasn't been assigned yet, this is either a filled or contoured
+            # SCALAR parameter
+            if not plot_type:
+                if configs['fill_levels'] or configs['fill_colors']:
+                    plot_type = 'contourf'
+                else:
+                    plot_type = 'contour'
+
+            # Contour plots
             if plot_type == 'contour':
-                out = contour(lon, lat, arr[parm], time_str, timerange_str, **configs)
-            #elif plot_type == 'contourf':
-            #    out = contourf(lon, lat, arr[parm], time_str, timerange_str, **configs)
+                out = contour(lon, lat, arr[parm], valid_str, timerange_str, **configs)
+
+            # Filled contour plots
+            elif plot_type == 'contourf':
+
+                # Always want contoured output.
+                out = contour(lon, lat, arr[parm], valid_str, timerange_str, **configs)
+                out_dict[parm].extend(out)
+
+                out = contourf(lon, lat, arr[parm], valid_str, timerange_str, **configs)
+                parm = "%s_cf" % (parm)
+
+            # Barb plots
             elif plot_type == 'barb':
-                out = barbs(lon, lat, arr[parm+'_u'], arr[parm+'_v'], parm, time_str,
+                out = barbs(lon, lat, arr[parm+'_u'], arr[parm+'_v'], valid_str,
                             timerange_str,
                             **configs)
             else:
                 raise ValueError("%s is an invalid plot_type entry" % (plot_type))
             out_dict[parm].extend(out)
 
-    for parm in parms:
+    save_time = None
+    for parm in out_dict.keys():
         output = out_dict[parm]
         if not realtime:
             save_time = "%s-%s" % (arrs[0]['valid_time'].strftime('%Y%m%d%H'),
@@ -246,40 +270,102 @@ def write_placefile(arrs, realtime=False):
             out_file = '%s/%s.txt' % (outdir, parm)
         with open(out_file, 'w') as f: f.write("".join(output))
 
+    # Write any bundled placefiles
+    write_bundles(save_time)
+
+def write_bundles(save_time):
+    """
+    Write out bundled placefiles. Works for archived runs.
+
+    GR (at least GR2Analyst v2.8) can display multiple placefiles that have been
+    concatenated together. The "first" file will display on the bottom of the bundled
+    stack, while the "last" file will display on top.
+
+    """
+    def replace_title_lines():
+        """
+        Inner function that searches through each placefile and replaces the title string
+        """
+        indices = [i for i in range(len(lines)) if 'Title:' in lines[i]]
+        for idx in indices:
+            mark = lines[idx].rfind('|')
+            lines[idx] = "Title: %s Bundle %s" % (bundle_name, lines[idx][mark:])
+        return lines
+
     # If entries exist in the BUNDLES dictionary, output bundled placefiles
     for bundle_name, parameters in BUNDLES.items():
         log.info("Writing bundle: %s with components: %s" % (bundle_name, parameters))
-        out_file = '%s/%s.txt' % (outdir, bundle_name)
-        with open(out_file, 'w') as f:
-            for parm in parameters:
-                try:
-                    infile = open('%s/%s.txt' % (outdir, parm), 'r')
-                    f.write(infile.read())
-                except IOError:
-                    log.error("%s not found. Skipped during bundling step" % (infile))
+        bundle_file = '%s/%s.txt' % (outdir, bundle_name)
+        if save_time:
+            bundle_file = '%s/%s_%s.txt' % (outdir, bundle_name, save_time)
 
-def barbs(lon, lat, U, V, parm, time_str, timerange_str, **kwargs):
+        with open(bundle_file, 'w') as f:
+            for parm in parameters:
+                filename = '%s/%s.txt' % (outdir, parm)
+                if save_time:
+                    filename = '%s/%s_%s.txt' % (outdir, parm, save_time)
+                try:
+                    in_file = open(filename, 'r')
+                    lines = in_file.readlines()
+                    lines = replace_title_lines()
+                    f.write("".join(lines))
+                except IOError:
+                    log.error("%s not found. Skipped during bundling step" % (in_file))
+
+def barbs(lon, lat, U, V, time_str, timerange_str, **kwargs):
+    """
+    Write out a wind barb placefile.
+
+    Parameters:
+    -----------
+    lon : array_like
+        2-D array of longitudes. Must be same shape as data
+    lat : array_like
+        2-D array of latitudes. Must be same shape as data
+    U : array_like
+        u-wind components
+    V : array_like
+        v-wind components
+    time_str : string
+        Valid time for this plot. Included in the placefile title
+    timerange_str : string
+        Valid time range over which to display in GR
+
+    Other Parameters:
+    -----------------
+    windicons : string
+        Path or url containing the wind icons referenced in this placefile
+    varname : string
+        Parameter information
+    skip : int
+        Number of wind barbs to skip in the i and j directions
+
+    Returns:
+    --------
+    out : list
+        List of strings, each corresponding to a new line for the placefile
+
+    """
     iconfile = kwargs.get('windicons', 'Missing: Specify `WIND_ICONDS` in cofigs.py!')
     plotinfo = kwargs.get('varname', 'None')
     skip = kwargs.get('skip', 6)
     out = []
     out.append('Title: %s | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 60\n')
+    out.append('RefreshSeconds: 5\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     out.append('Color: 255 255 255\n')
     out.append('IconFile: 1, 28, 28, 14, 14, "%s"\n' % (iconfile))
     out.append('Font: 1, 10, 4, "Arial"\n\n')
     for j in range(U.shape[0])[::skip]:
         for i in range(V.shape[1])[::skip]:
-            wdir, wspd = winds.comp2vec(float(U[j,i]),
-                                        float(V[j,i]))
+            wdir, wspd = winds.comp2vec(float(U[j,i]), float(V[j,i]))
             if wspd > 0:
                 wspd_rounded = 5 * round(wspd/5)
                 numref = int(wspd_rounded//5)
                 out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')
                 out.append('  Threshold: 999\n')
-                out.append('  Icon: 0,0,%s,1,%s,%s\n' % (wdir, np.clip(numref,1,999),
-                           round(wspd,1)))
+                out.append('  Icon: 0,0,%s,1,%s,%s: %s\n' % (wdir, np.clip(numref,1,999),
+                                                             plotinfo, round(wspd,1)))
                 out.append('End:\n\n')
     return out
 

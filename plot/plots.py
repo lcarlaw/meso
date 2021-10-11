@@ -96,7 +96,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     # Contour labels
     for lev in clabs.keys():
         for val in clabs[lev]:
-            if float(lev) >= 9: lev = int(lev)
+            if float(lev) >= 9: lev = int(float(lev))
             out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
 
     plt.close(fig)

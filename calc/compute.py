@@ -89,7 +89,7 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
             if 'srh01km' in SCALARS:
                 d['srh01km'][j,i] = derived.srh(prof, lower=0, upper=1000)
             if 'lr03km' in SCALARS:
-                d['lr03km'][j,i] = derived.lapse_rate(prof, lower=2, upper=3000)
+                d['lr03km'][j,i] = derived.lapse_rate(prof, lower=0, upper=3000)
             if 'mllcl' in SCALARS:
                 d['mllcl'][j,i] = mlpcl.lclhght
 

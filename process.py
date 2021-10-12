@@ -21,6 +21,12 @@ from utils.logs import logfile
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 log = logfile('process')
+
+def export_for_testing(testfile, data):
+    import pickle
+    with open(testfile, 'wb') as f:
+        pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):
     for i in range(len(data)):
@@ -72,6 +78,9 @@ def create_placefiles(data, realtime=False):
     # Final filter (smoothing and masking logic) and plotting/placefiles.
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
+    
+    #export_for_testing('tests/CAE_QLCS-sharppy.pickle', plot_arrays)
+    #export_for_testing('tests/CAE_QLCS-standard.pickle', prof_data)
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)
@@ -100,15 +109,15 @@ def parse_logic(args):
     timestr_fmt = '%Y-%m-%d/%H'
     dt_end = None
     if args.realtime:
-        dt_start = datetime.utcnow() - timedelta(minutes=51)
+        dt_start = datetime.utcnow() - timedelta(minutes=52)
     else:
         if args.time_str is not None:
             dt_start = datetime.strptime(args.time_str, timestr_fmt)
         elif args.start_time is not None and args.end_time is not None:
             dt_start = datetime.strptime(args.start_time, timestr_fmt)
-            dt_start -= timedelta(hours=1)
+            dt_start = dt_start - timedelta(hours=1)
             dt_end = datetime.strptime(args.end_time, timestr_fmt)
-            dt_end -= timedelta(hours=1)
+            dt_end = dt_end - timedelta(hours=1)
         else:
             log.error("Missing one of -rt, -t, or -start/-end flags")
             sys.exit(1)
@@ -132,6 +141,7 @@ def parse_logic(args):
     dt = dt_start
     while dt <= dt_end:
         filepath = "%s/%s" % (args.data_path, dt.strftime('%Y-%m-%d/%H'))
+        print(filepath)
         if args.realtime:
             for grb in ['0_0', '0_50', '1_0']:
                 data.append(read.read_data("%s/%s.grib2" % (filepath, grb)))

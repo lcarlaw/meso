@@ -70,8 +70,9 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     out.append('Font: 1, 14, 1, "Arial"\n')
     out.append('TimeRange: %s\n' % (timerange_str))
 
-    clabs = defaultdict(list) # Store contour labels
+    #clabs = defaultdict(list) # Store contour labels
     for feature in geojson['features']:
+        clabs = defaultdict(list) # Store contour labels
         coords = feature['geometry']['coordinates']
         level = '%s' % (round(feature['properties']['level-value'], 1))
         idx = feature['properties']['level-index']
@@ -95,11 +96,12 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
             KNT += 1
         out.append('End:\n\n')
 
-    # Contour labels
-    for lev in clabs.keys():
-        for val in clabs[lev]:
-            if float(lev) >= 9: lev = int(float(lev))
-            out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
+        # Contour labels
+        for lev in clabs.keys():
+            for val in clabs[lev]:
+                if float(lev) >= 9: lev = int(float(lev))
+                out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
+        out.append('\n')
 
     plt.close(fig)
     return out
@@ -197,6 +199,7 @@ def write_placefile(arrs, realtime=False):
         valid_str = "Valid: %s" % (arr['valid_time'].strftime('%H:%MZ %a %b %d %Y'))
 
         # Construct the time range string
+
         if realtime is True:
             start = arr['valid_time'] - timedelta(minutes=15)
             end = arr['valid_time'] + timedelta(minutes=15)
@@ -204,7 +207,7 @@ def write_placefile(arrs, realtime=False):
             start = arr['valid_time'] - timedelta(seconds=1799)
             end = arr['valid_time'] + timedelta(seconds=1800)
         else:   # For special testing mode.
-            start = datetime(2021, 1, 1, 0)
+            start = datetime(2000, 1, 1, 0)
             end = datetime(2300, 1, 1, 0)
 
         timerange_str = "%s %s" % (start.strftime('%Y-%m-%dT%H:%M:%SZ'),

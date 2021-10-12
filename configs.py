@@ -38,9 +38,9 @@ VECTOR_PARAMS = {
     'devtor': 'Deviant Tornado Motion (kt)',
 }
 
-# Need to correct placefile info string
 BUNDLES = {
-    'QLCS Tornado': ['lr03km_cf', 'lr03km', 'estp', 'shr3']
+    'QLCS Tornado': ['cape3km_cf', 'cape3km', 'estp', 'shr3'],
+    'ML CAPE-CIN': ['mlcin_cf', 'mlcin', 'mlcape'],
 #    'bundle_1': ['cape3km', 'shr3'],
 #    'low-level-lapse-rates': ['lr03km', 'lr03km_cf']
 }
@@ -61,14 +61,11 @@ plotconfigs = {
         'levels': [250, 500, 1000, 1500, 2000, 3000]
     },
 
-    # Contour-filled 0-3 km lapse rates
     'lr03km': {
-        #'colors': ['#659d53', '#ec8637', '#da473d', '#da473d', '#da473d'],
         'colors': 'k',
-        'levels': [6, 6.5, 7, 8, 9, 10],
-        #'linewidths': [1, 2, 2, 2, 2],
+        'levels': [6, 7, 8, 9, 10],
         'linewidths': 0.75,
-        'fill_levels': [6.5, 999],
+        'fill_levels': [7, 999],
         'fill_colors': ['#f1a95d', '#f1a95d']
     },
 
@@ -109,23 +106,28 @@ plotconfigs = {
     },
 
     'cape3km': {
-        'colors': ['#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
-                   '#bb2d1d', '#841f18', '#841f18'],
-        'levels': [25, 50, 75, 100, 125, 150, 300, 500],
-        'linewidths': [1, 1, 2, 2, 2, 3, 3, 3]
+        #'colors': ['#dd564e', '#dd564e', '#dd564e', '#bb2d1d', '#bb2d1d',
+        #           '#bb2d1d', '#841f18', '#841f18'],
+        'colors': 'k',
+        'levels': [25, 75, 100, 150, 300, 500],
+        'linewidths': [0.5, 0.5, 1, 1, 1.5, 1.5],
+        'fill_levels': [50, 9999],
+        'fill_colors': '#f1b1bc'
     },
 
     'mlcin': {
         'colors': ['#6beaea', '#4eb0e7', '#0000cf', '#0000cf', '#0000cf'],
         'levels': [25, 75, 150, 300],
         'linewidths': [1, 1, 1, 2, 2],
+        'fill_levels': [25, 9999],
+        'fill_colors': ['#4eb0e7', '#4eb0e7'],
     },
 
     'estp': {
-        'levels': [0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        'colors': ['#ec904a', '#ec904a', '#ec904a', '#e94639', '#e94639', '#c23f34',
-                   '#c23f34', '#841f18', '#841f18', '#841f18', '#957cca', '957cca'],
-        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3]
+        'levels': [0.25, 0.5, 1, 2, 4, 6, 8, 10],
+        'colors': ['#ec904a', '#ec904a', '#ec904a', '#e94639', '#c23f34',
+                   '#841f18', '#957cca', '#e951f5', '#e951f5'],
+        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
     },
 }
 
@@ -134,7 +136,7 @@ plotconfigs = {
 # entries in the PLOTCONFIGS dictionary
 ##########################################################################################
 barbconfigs = {
-    'skip': 5,
+    'skip': 6,
     'windicons': WIND_ICONS,
 }
 
@@ -197,11 +199,11 @@ FILTER_SPECS = {
 # You likely won't need (or want) to change these. Download priority is set by the order
 # of the dictionary keys in the DATA_SOURCES variable.
 ##########################################################################################
-TIMEOUT = 180       # Seconds after which to timeout the data download function
+TIMEOUT = 200       # Seconds after which to timeout the data download function
 MAXSECONDS = 1800   # Number of seconds after which to abort data download in run.py
 MINSIZE = 5         # Grib files under this size (MB) will result in a download error
 SIGMA = 1.5         # For smoothing function. Larger = more smoothing, but amplitude loss
-ALPHA = 60          # Alpha level for filled placefiles. 0 = transparent; 255 = opaque
+ALPHA = 30          # Alpha level for filled placefiles. 0 = transparent; 255 = opaque
 
 DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',

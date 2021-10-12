@@ -1,5 +1,7 @@
 # meso
-This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst, as well as the ability to easily produce post-event reanalyses for use in local case studies. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations, a step that is not performed with this code at this time.
+This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations, a step that is not performed with this code at this time.
+
+This repo also has an archived mode, allowing the creation post-event reanalyses for use in local case studies.
 
 ## Code Execution Time Improvements Using Numba
 The main overhaul was to accelerate the CPU-intensive thermodynamic calculations performed by SHARPpy using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba (use of `**kwargs` in function calls, masked numpy arrays, among other things). In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. As a result, the original SHARPpy code was parsed out line-by-line to allow it to work with Numba and the `@njit` decorator, and some flexibility has certainly been lost here. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
@@ -105,7 +107,7 @@ It is possible to load multiple placefiles with one entry by concatenating place
 
 ## Creating an archived case
 ### Download the model data
-The `get_data.py` script can download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. 1-hour forecasts were chosen over 0-hour analyses to recreate what would have been available to forecasters in real time. `get_data.py` will accept a single time or a time range.
+The `get_data.py` script can download archived 1-hour forecasts either from the NCEI THREDDS or Google Cloud servers. `get_data.py` will accept a single time or a time range.
 
 For this example, we'll download HRRR data during the August 10th, 2020 Midwest Derecho:
 
@@ -113,9 +115,12 @@ For this example, we'll download HRRR data during the August 10th, 2020 Midwest 
 python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR
 ```
 
-Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `./IO/data` directory and upscaled to 13 km grid spacing (same as the RAP).
+Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `./IO/data` directory and upscaled to 13 km grid spacing (same as the RAP). The original data files (>500 MB) will be deleted from the file system.
 
-The HRRR archive on the Google Cloud appears to go back to the 18z run on 2014-07-30, while RAP data is available back to the 00z run on 2021-02-22. The RAP/RUC archive on the THREDDS server goes back further, but you may notice more errors when downloading due to data response latencies during the web retrieval steps, or missing model runs.
+The HRRR archive on the Google Cloud appears to go back to the 18z run on 2014-07-30, while RAP data is available back to the 00z run on 2021-02-22. The RAP/RUC archive on the THREDDS server goes back further, but you may notice more errors when downloading due to data response latencies during the web retrieval steps, as well as missing model runs.
+
+#### Special Notes
+If you request a considerable amount of data (numerous runs, HRRR data, etc.), you may need to increase the `TIMEOUT` variable in the `configs.py` file.
 
 ### Creating placefiles
 ```
@@ -139,7 +144,7 @@ python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON 
 * `TIME`: For a single model cycle time in the form `YYYY-mm-dd/HH`. Don't use with `-s` and `-e` specified.
 * `LAT_LON`: Latitude/longitude pair for hodograph creation. Form is `LAT/LON`. Currently only accepts one point at a time.
 * `STORM_MOTION`: The storm motion vector. It can take one of two forms. The first is either `BRM` for the Bunkers right-mover vector or `BLM` for the Bunkers left-mover vector. The second form is `DDD/SS`, where `DDD` is the direction the storm is coming from in degrees, and `SS` is the storm speed in knots. An example might be 240/35 (from the WSW at 35 kts). If the argument is not specified, the default is to use the Bunkers right-mover vector.
-* `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used.
+* `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used. 
 * `-sr`: Storm-relative flag. If set, hodographs are altered to plot in a storm-relative sense, similar to [Cameron Nixon's work here](https://cameronnixonphotography.wordpress.com/research/the-storm-relative-hodograph/).
 
 This plotting is done using modified code from Tim Supinie's [vad-plotter repo](https://github.com/tsupinie/vad-plotter).

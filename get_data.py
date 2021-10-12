@@ -93,6 +93,8 @@ def execute_regrid(full_name):
     p = execute("rm %s" % (full_name))
     if p.returncode == 0: log.info("Removed %s" % (full_name))
 
+# Catch hung download processes with this decorator function. TIMEOUT specified in config
+@timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
 def execute_download(full_name, url):
     """Download the requested files
 
@@ -138,7 +140,7 @@ def make_dir(run_time, data_path):
     return download_dir
 
 # Catch hung download processes with this decorator function. TIMEOUT specified in config
-@timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
+#@timeout_decorator.timeout(TIMEOUT, timeout_exception=StopIteration)
 def download_data(dts, data_path, model='RAP', num_hours=1):
     """Function called by main() to control download of model data.
 
@@ -332,6 +334,7 @@ def parse_logic(args):
         cycle_dt = []
         while start_dt <= end_dt:
             cycle_dt.append(start_dt-timedelta(hours=1))
+            #cycle_dt.append(start_dt)
             start_dt += timedelta(hours=1)
 
     else:

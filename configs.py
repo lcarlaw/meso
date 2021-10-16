@@ -65,7 +65,7 @@ plotconfigs = {
         'colors': 'k',
         'levels': [6, 7, 8, 9, 10],
         'linewidths': 0.75,
-        'fill_levels': [7, 999],
+        'fill_levels': [6.5, 999],
         'fill_colors': ['#f1a95d', '#f1a95d']
     },
 
@@ -203,7 +203,7 @@ TIMEOUT = 200       # Seconds after which to timeout the data download function
 MAXSECONDS = 1800   # Number of seconds after which to abort data download in run.py
 MINSIZE = 5         # Grib files under this size (MB) will result in a download error
 SIGMA = 1.5         # For smoothing function. Larger = more smoothing, but amplitude loss
-ALPHA = 30          # Alpha level for filled placefiles. 0 = transparent; 255 = opaque
+ALPHA = 50          # Alpha level for filled placefiles. 0 = transparent; 255 = opaque
 
 DATA_SOURCES = OrderedDict({
     'NOMADS': 'https://nomads.ncep.noaa.gov/pub/data/nccf/com',

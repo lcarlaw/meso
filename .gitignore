@@ -1,8 +1,7 @@
 **/IO/data
 **junk
 __pycache__/
-**/sharptab/__pycache__/
-**/utils/__pycache__/
+**/__pycache__/
 .DS_Store
 Thumbs.db
 download_status.txt
@@ -10,3 +9,9 @@ download_status.txt
 /output/logs/
 *.pyc
 tests/
+winter_tests.py
+test_filtering.py
+test.py
+test.txt
+placefile_tests.py
+calc/winter.py

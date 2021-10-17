@@ -26,17 +26,17 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
 
     Parameters:
     -----------
-    pres: numpy array
+    pres: array_like
         Array of pressure values (MB) [z,y,x]
-    tmpc: numpy array
+    tmpc: array_like
         Array of temperature values (C) [z,y,x]
-    hght: numpy array
+    hght: array_like
         Array of geopotential height values (m) [z,y,x]
-    dwpc: numpy array
+    dwpc: array_like
         Array of dewpoint values (C) [z,y,x]
-    wspd: numpy array
+    wspd: array_like
         Array of wind speed values (KTS) [z,y,x]
-    wdir: numpy array
+    wdir: array_like
         Array of wind direction values (DEG) [z,y,x]
     SCALARS: Numba typed List
         Scalar parameter keys, passed in from SCALAR_PARAMS in the config file
@@ -74,12 +74,24 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
             mupcl = params.parcelx(prof, flag=3)
 
             # Scalars
-            if 'esrh' in SCALARS: d['esrh'][j,i] = derived.esrh(prof, eff_inflow)
-            if 'mucape' in SCALARS: d['mucape'][j,i] = mupcl.bplus
-            if 'mlcin' in SCALARS: d['mlcin'][j,i] = mlpcl.bminus * -1
-            if 'mlcape' in SCALARS: d['mlcape'][j,i] = mlpcl.bplus
-            if 'cape3km' in SCALARS: d['cape3km'][j,i] = mlpcl.b3km
-            if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof)
+            if 'esrh' in SCALARS:
+                d['esrh'][j,i] = derived.srh(prof, effective_inflow_layer=eff_inflow)
+            if 'mucape' in SCALARS:
+                d['mucape'][j,i] = mupcl.bplus
+            if 'mlcin' in SCALARS:
+                d['mlcin'][j,i] = mlpcl.bminus * -1
+            if 'mlcape' in SCALARS:
+                d['mlcape'][j,i] = mlpcl.bplus
+            if 'cape3km' in SCALARS:
+                d['cape3km'][j,i] = mlpcl.b3km
+            if 'srh500' in SCALARS:
+                d['srh500'][j,i] = derived.srh(prof, lower=0, upper=500)
+            if 'srh01km' in SCALARS:
+                d['srh01km'][j,i] = derived.srh(prof, lower=0, upper=1000)
+            if 'lr03km' in SCALARS:
+                d['lr03km'][j,i] = derived.lapse_rate(prof, lower=0, upper=3000)
+            if 'mllcl' in SCALARS:
+                d['mllcl'][j,i] = mlpcl.lclhght
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:
@@ -88,6 +100,10 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
                 d['shr1_u'][j,i], d['shr1_v'][j,i] = derived.bulk_shear(prof, height=1000)
             if 'shr3' in VECTORS:
                 d['shr3_u'][j,i], d['shr3_v'][j,i] = derived.bulk_shear(prof, height=3000)
+            if 'shr6' in VECTORS:
+                d['shr6_u'][j,i], d['shr6_v'][j,i] = derived.bulk_shear(prof, height=6000)
+            if 'shr8' in VECTORS:
+                d['shr8_u'][j,i], d['shr8_v'][j,i] = derived.bulk_shear(prof, height=8000)
             if 'rm5' in VECTORS:
                 d['rm5_u'][j,i], d['rm5_v'][j,i] = derived.rm5(prof)
             if 'lm5' in VECTORS:
@@ -97,11 +113,12 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
 
             # Special parameters: prohibitive to re-compute all of the inputs...
             if 'estp' in SCALARS: d['estp'][j,i] = derived.estp(d['mlcape'][j,i],
-                                                                d['mlcin'][j,i],
+                                                                mlpcl.bminus,
                                                                 d['esrh'][j,i],
                                                                 d['ebwd_u'][j,i],
                                                                 d['ebwd_v'][j,i],
-                                                                mlpcl)
+                                                                mlpcl, eff_inflow[0],
+                                                                prof)
     return d
 
 def sharppy_calcs(**kwargs):

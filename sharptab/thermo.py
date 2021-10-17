@@ -718,7 +718,6 @@ def wetlift3(p, t, p2):
     return satlift3(p2, thetam)
 
 @njit
-#@vectorize(["float64(float64)"], nopython=True)
 def wobf2(t):
     """Implementation of the Wobus Function for computing the moist adiabats.
 
@@ -1047,6 +1046,7 @@ def virtemp(p, t, td):
     return vt
 
 @njit
+#@vectorize(["float64(float64, float64)"], nopython=True)
 def mixratio(p, t):
     """Returns the mixing ratio (g/kg) of a parcel
 

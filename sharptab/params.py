@@ -1420,7 +1420,7 @@ def most_unstable_level(prof):
     d = interp.dwpt(prof, p)
 
     p2, t2 = thermo.drylift(p, t, d)
-    mt = thermo.wetlift2(p2, t2, 1000)
+    mt = thermo.wetlift2(p2, t2, 1000.)
     ind = np.where(np.fabs(mt - np.nanmax(mt)) < TOL)[0]
     return p[ind[0]]
 

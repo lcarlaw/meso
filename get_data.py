@@ -36,10 +36,15 @@ def interpolate_in_time(download_dir):
          )
     execute(arg)
 
-    arg = "cp %s %s/%s" % (files[0], download_dir, '0_0.grib2')
-    execute(arg)
-    arg = "cp %s %s/%s" % (files[1], download_dir, '1_0.grib2')
-    execute(arg)
+    # Copy start and end files. Remove the original datafiles.
+    for i in range(len(files)):
+        arg = "cp %s %s/%s_0.grib2" % (files[i], download_dir, i)
+        p = execute(arg)
+        if p.returncode == 0: log.info(arg)
+
+        arg = "rm %s" % (files[i])
+        p = execute(arg)
+        if p.returncode == 0: log.info(arg)
 
 def test_url(url):
     """Test for online file existence.

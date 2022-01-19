@@ -4,12 +4,17 @@ from collections import OrderedDict
 # User configurations: Must be edited
 #
 # Adjust the following variables to point to Python, WGRIB2, and WGET executables on the
-# filesystem. See README for notes on WGRIB2 requirements. Specify where to send logfiles.
+# filesystem. See README for notes on WGRIB2 requirements.
+#
+# OUTPUT_DIR, MODEL_DIR, and LOG_DIR are used by run.py to automate scripting. 
 ##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
-LOG_DIR = '/Users/leecarlaw/scripts/meso/output/logs'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
+
+OUTPUT_DIR = '/Users/leecarlaw/Desktop/test'            # Location to store placefiles
+MODEL_DIR = '/Users/leecarlaw/model_data'               # Location to store model data
+LOG_DIR = '/Users/leecarlaw/scripts/meso/output/logs'   # Logfile output
 
 ##########################################################################################
 # Plotting configurations

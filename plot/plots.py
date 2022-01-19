@@ -9,12 +9,11 @@ import logging as log
 
 import sharptab.winds as winds
 from configs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, barbconfigs, contourconfigs,
-                     plotconfigs, ALPHA)
+                     plotconfigs, ALPHA, OUTPUT_DIR)
 
-parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+#parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
-outdir = "%s/output" % (parent_path)
-if not os.path.exists(outdir): os.makedirs(outdir)
+if not os.path.exists(OUTPUT_DIR): os.makedirs(OUTPUT_DIR)
 
 def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     """
@@ -268,9 +267,9 @@ def write_placefile(arrs, realtime=False):
         if not realtime:
             save_time = "%s-%s" % (arrs[0]['valid_time'].strftime('%Y%m%d%H'),
                                    arrs[-1]['valid_time'].strftime('%Y%m%d%H'))
-            out_file = '%s/%s_%s.txt' % (outdir, parm, save_time)
+            out_file = '%s/%s_%s.txt' % (OUTPUT_DIR, parm, save_time)
         else:
-            out_file = '%s/%s.txt' % (outdir, parm)
+            out_file = '%s/%s.txt' % (OUTPUT_DIR, parm)
         with open(out_file, 'w') as f: f.write("".join(output))
 
     # Write any bundled placefiles
@@ -298,15 +297,15 @@ def write_bundles(save_time):
     # If entries exist in the BUNDLES dictionary, output bundled placefiles
     for bundle_name, parameters in BUNDLES.items():
         log.info("Writing bundle: %s with components: %s" % (bundle_name, parameters))
-        bundle_file = '%s/%s.txt' % (outdir, bundle_name)
+        bundle_file = '%s/%s.txt' % (OUTPUT_DIR, bundle_name)
         if save_time:
-            bundle_file = '%s/%s_%s.txt' % (outdir, bundle_name, save_time)
+            bundle_file = '%s/%s_%s.txt' % (OUTPUT_DIR, bundle_name, save_time)
 
         with open(bundle_file, 'w') as f:
             for parm in parameters:
-                filename = '%s/%s.txt' % (outdir, parm)
+                filename = '%s/%s.txt' % (OUTPUT_DIR, parm)
                 if save_time:
-                    filename = '%s/%s_%s.txt' % (outdir, parm, save_time)
+                    filename = '%s/%s_%s.txt' % (OUTPUT_DIR, parm, save_time)
                 try:
                     in_file = open(filename, 'r')
                     lines = in_file.readlines()

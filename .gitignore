@@ -15,3 +15,4 @@ test.py
 test.txt
 placefile_tests.py
 calc/winter.py
+purge.py

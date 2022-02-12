@@ -58,51 +58,62 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     plotinfo = kwargs.get('varname', 'None')
 
     if levels is not None and colors is not None:
-        c = ax.contour(lon, lat, data, levels, colors=colors)
+        c = None
+        if np.max(data) >= np.min(levels):
+            c = ax.contour(lon, lat, data, levels, colors=colors)
     else:
         c = ax.contour(lon, lat, data)
-    geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
 
-    out = []
-    out.append('Title: %s | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 5\n')
-    out.append('Font: 1, 14, 1, "Arial"\n')
-    out.append('TimeRange: %s\n' % (timerange_str))
+    # Max of data array is greater than minimum contour threshold
+    if c is not None:
+        geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
 
-    #clabs = defaultdict(list) # Store contour labels
-    for feature in geojson['features']:
-        clabs = defaultdict(list) # Store contour labels
-        coords = feature['geometry']['coordinates']
-        level = '%s' % (round(feature['properties']['level-value'], 1))
-        idx = feature['properties']['level-index']
-        if int(levels[idx]) == int(float(level)):
-            try:
-                lws = list(kwargs['linewidths'])
-                linewidth = lws[idx]
-            except:
-                linewidth = kwargs['linewidths']
-        else:
-            linewidth = 1
+        out = []
+        out.append('Title: %s | %s\n' % (plotinfo, time_str))
+        out.append('RefreshSeconds: 60\n')
+        out.append('Font: 1, 14, 1, "Arial"\n')
+        out.append('TimeRange: %s\n' % (timerange_str))
 
-        rgb = hex2rgb(feature['properties']['stroke'])
-        out.append('Color: %s 255\n' % (' '.join(rgb)))
-        out.append('Line: %s, 0, "%s: %s"\n' % (linewidth, plotinfo, level))
+        #clabs = defaultdict(list) # Store contour labels
+        for feature in geojson['features']:
+            clabs = defaultdict(list) # Store contour labels
+            coords = feature['geometry']['coordinates']
+            level = '%s' % (round(feature['properties']['level-value'], 1))
+            idx = feature['properties']['level-index']
+            if int(levels[idx]) == int(float(level)):
+                try:
+                    lws = list(kwargs['linewidths'])
+                    linewidth = lws[idx]
+                except:
+                    linewidth = kwargs['linewidths']
+            else:
+                linewidth = 1
 
-        KNT = 0
-        for coord in coords:
-            out.append(' %s, %s\n' % (coord[1], coord[0]))
-            if KNT % 30 == 0: clabs[level].append([coord[1], coord[0]])
-            KNT += 1
-        out.append('End:\n\n')
+            rgb = hex2rgb(feature['properties']['stroke'])
+            out.append('Color: %s 255\n' % (' '.join(rgb)))
+            out.append('Line: %s, 0, "%s: %s"\n' % (linewidth, plotinfo, level))
 
-        # Contour labels
-        for lev in clabs.keys():
-            for val in clabs[lev]:
-                if float(lev) >= 9: lev = int(float(lev))
-                out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
-        out.append('\n')
+            KNT = 0
+            for coord in coords:
+                out.append(' %s, %s\n' % (coord[1], coord[0]))
+                if KNT % 30 == 0: clabs[level].append([coord[1], coord[0]])
+                KNT += 1
+            out.append('End:\n\n')
 
-    plt.close(fig)
+            # Contour labels
+            for lev in clabs.keys():
+                for val in clabs[lev]:
+                    if float(lev) >= 9: lev = int(float(lev))
+                    out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
+            out.append('\n')
+
+        plt.close(fig)
+
+    # No contour values found. Would otherwise result in a
+    # UserWarning: No contour levels were found within the data range
+    else:
+        out = ["\n"]
+
     return out
 
 def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
@@ -149,7 +160,7 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
 
     out = []
     out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 5\n')
+    out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     for feature in geojson['features']:
         rgb = hex2rgb(feature['properties']['fill'])
@@ -353,7 +364,7 @@ def barbs(lon, lat, U, V, time_str, timerange_str, **kwargs):
     skip = kwargs.get('skip', 6)
     out = []
     out.append('Title: %s | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 5\n')
+    out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     out.append('Color: 255 255 255\n')
     out.append('IconFile: 1, 28, 28, 14, 14, "%s"\n' % (iconfile))

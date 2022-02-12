@@ -9,7 +9,8 @@ import numpy as np
 import timeout_decorator
 
 from configs import WGRIB2, WGET, TIMEOUT, MINSIZE
-from configs import DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, vars, grid_info
+from configs import (MODEL_DIR, DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, vars,
+                     grid_info)
 from utils.cmd import execute
 from utils.logs import logfile
 
@@ -306,7 +307,8 @@ def parse_logic(args):
     QC user inputs and send arguments to download functions.
 
     """
-    if args.data_path is None: args.data_path = "%s/IO/data" % (script_path)
+    #if args.data_path is None: args.data_path = "%s/IO/data" % (script_path)
+    args.data_path = MODEL_DIR
     timestr_fmt = '%Y-%m-%d/%H'
     log.info("----> New download processing")
 
@@ -376,7 +378,7 @@ def main():
                     "-e" flag. No -t flag is taken.')
     ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
     ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data.\
-                    Default is in the ./IO/data directory.')
+                    Defaults to MODEL_DIR specified in the config file')
     args = ap.parse_args()
     parse_logic(args)   # Set and QC user inputs. Pass for downloading
 

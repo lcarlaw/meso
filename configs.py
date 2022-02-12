@@ -6,7 +6,7 @@ from collections import OrderedDict
 # Adjust the following variables to point to Python, WGRIB2, and WGET executables on the
 # filesystem. See README for notes on WGRIB2 requirements.
 #
-# OUTPUT_DIR, MODEL_DIR, and LOG_DIR are used by run.py to automate scripting. 
+# OUTPUT_DIR, MODEL_DIR, and LOG_DIR are used by run.py to automate scripting.
 ##########################################################################################
 PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
@@ -58,12 +58,15 @@ BUNDLES = {
 # contour-filled placefile to be output. These will have `_cf` appended to the filename.
 ##########################################################################################
 # URL or local path to wind icon files
-WIND_ICONS = 'https://jupiter-dev.ngrok.io/windicons.png'
-SHEAR1_ICONS = 'http://jupiter-dev.ngrok.io/shr1icons.png'
+WIND_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/windicons.png'
+SHEAR1_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/shr1icons.png'
 
 plotconfigs = {
     'mllcl': {
-        'levels': [250, 500, 1000, 1500, 2000, 3000]
+        'colors': ['#438a2d','#438a2d','#71d054','#71d054','#000000','#000000','#000000',
+                   '#000000', '#000000'],
+        'levels': [500, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000],
+        'linewidths': [3, 3, 2, 2, 1, 1, 1, 1, 1]
     },
 
     'lr03km': {
@@ -175,26 +178,26 @@ FILTER_SPECS = {
     },
 
     'shr6': {
-        'shr3': ['>', 20],
+        'shr6': ['>', 30],
     },
 
     'shr8': {
-        'shr3': ['>', 25],
+        'shr8': ['>', 40],
     },
 
     'rm5': {
         'mucape': ['>', 100],
-        'ebwd': ['>', 25],
+        'ebwd': ['>', 20],
     },
 
     'lm5': {
         'mucape': ['>', 100],
-        'ebwd': ['>', 25],
+        'ebwd': ['>', 20],
     },
 
     'devtor': {
         'mucape': ['>', 100],
-        'ebwd': ['>', 25],
+        'ebwd': ['>', 20],
     },
 }
 

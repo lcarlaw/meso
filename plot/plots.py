@@ -59,7 +59,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
     if levels is not None and colors is not None:
         c = None
-        if np.max(data) >= np.min(levels):
+        if np.nanmax(data) >= np.min(levels):
             c = ax.contour(lon, lat, data, levels, colors=colors)
     else:
         c = ax.contour(lon, lat, data)
@@ -117,7 +117,8 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     return out
 
 def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
-    """Contour-filled plot using geojsoncontour.
+    """Contour-filled plot. Updates to attempt to limit "cross-over" lines when plotting
+    Polygons in GR.
 
     Parameters:
     -----------
@@ -146,6 +147,73 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     out : list
         List of strings, each corresponding to a new line for the placefile
 
+    """
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    levels = kwargs.get('fill_levels')
+    colors = kwargs.get('fill_colors')
+    plotinfo = kwargs.get('varname', 'None')
+
+    #data = np.where(data < levels[0], np.nan, data)
+    c = ax.contourf(lon, lat, np.where(data < levels[0], np.nan, data))
+
+    # Some fill_colors in config.py are single strings.
+    if type(colors) == list:
+        rgb = hex2rgb(colors[0])
+    else:
+        rgb = hex2rgb(colors)
+
+    out = []
+    out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
+    out.append('RefreshSeconds: 60\n')
+    out.append('TimeRange: %s\n' % (timerange_str))
+    for collection in c.collections:
+        for path in collection.get_paths():
+            coords = path.vertices
+            if len(coords) < 3:
+                continue
+            out.append('Polygon:\n')
+            first_line = True
+            for i in range(len(coords)):
+                COLOR = ""
+                if first_line:
+                    COLOR ='%s, %s' % (', '.join(rgb), ALPHA)
+                out.append(f" {coords[i][1]}, {coords[i][0]}, {COLOR}\n")
+                first_line = False
+            out.append("End:\n")
+            out.append("\n")
+    plt.close(fig)
+    return out
+
+def contourf_original(lon, lat, data, time_str, timerange_str, **kwargs):
+    """[DEPRECATED] Contour-filled plot using geojsoncontour.
+
+    Parameters:
+    -----------
+    lon : array_like
+        2-D array of longitudes. Must be same shape as data
+    lat : array_like
+        2-D array of latitudes. Must be same shape as data
+    data : array_like [N, M]
+        Values over which contour fill is drawn
+    time_str : string
+        Valid time for this plot. Included in the placefile title
+    timerange_str : string
+        Valid time range over which to display in GR
+    Other Parameters:
+    -----------------
+    levels : list, array
+        Number and positions of the contour lines / regions
+    colors : color string (hexademicals)
+        Colors corresponding to each contour-fill level
+    plotinfo : string
+        Brief description of the plot
+    Returns:
+    --------
+    out : list
+        List of strings, each corresponding to a new line for the placefile
     """
 
     fig = plt.figure()

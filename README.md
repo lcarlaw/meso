@@ -17,10 +17,10 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
-- [ ] Build simple cressman or barnes surface analysis?
+- [ ] Build simple Cressman or barnes surface analysis?
 - [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations.
 - [ ] Figure out GR's polygon fill rules: stripes on contour-filled plots?
-- [ ] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file
+- [X] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file
 - [ ] Add capability to output images (.tif, high-res .png) of mesoanalysis parameters & upper-air variables
 - [X] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)
 - [X] Improve download execution for archived THREDDS requests
@@ -38,9 +38,9 @@ conda env create -f environment.yml
 ```
 
 ### Dependencies and config file alterations
-You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file. Specify a location for logfile output via the `LOG_DIR` variable.
+You will need working `wget` and `wgrib2` binaries on your filesystem. Add these to the `WGRIB2` and `WGET` variables in the `config.py` file. Specify a location for logfile output via the `LOG_DIR` variable, the default directory to download model data to in `MODEL_DIR`, and where to send the final placefiles in `OUTPUT_DIR`.
 
-If you want to run this in realtime mode (see section below), specify the `PYTHON` variable to point to the particular anaconda `meso` environment (or whatever you named it) on your filesystem.
+If you want to run this in realtime mode (see section below), specify the `PYTHON` variable to point to the particular anaconda `meso` environment (or whatever you named it) on your filesystem. If desired, locations to `WIND_ICONS` and `SHEAR1_ICONS` can also be specified in the config file.
 
 #### Installing the latest WGRIB2 binary
 Wgrib2 version 3.0.2 or higher is necessary for time interpolations and for decoding older versions of the RAP. The latest wgrib2 binary has an added flag called `new_grid_order` which is needed if you want to use this repository to read older RUC data stored on the NCEI THREDDS servers. Some of the older RAP/RUC grib files store the UGRD and VGRD entries in separate "blocks", and wgrib2 needs these to be paired together, one VGRD after a UGRD entry. The steps to install (at least on my 2019 Macbook Pro running 10.15.3 Catalina) were straightforward, although I needed a separate `gcc` install than the pre-packaged XCode version on my machine which was installed via [`homebrew`](https://brew.sh/). This may be different on your machine. If not using `brew`, the usual cautions of installing external libraries on your local machine apply.
@@ -100,7 +100,7 @@ def srh500(prof):
 ```
 if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof, eff_inflow)
 ```
-4. Specify contouring configurations in the `PLOTCONFIGS` dictionary within the `configs.py` file. The dictionary key must match the key we used in step 1. If no entry is providing, plotting parameters will be specified via the `barbconfigs` or `contourconfigs` dictionaries.
+4. Specify contouring configurations in the `PLOTCONFIGS` dictionary within the `configs.py` file. The dictionary key must match the key we used in step 1. If no entry is provided, plotting parameters will be specified via the `barbconfigs` or `contourconfigs` dictionaries.
 
 ## Specifying multi-parameter placefile bundles  
 It is possible to load multiple placefiles with one entry by concatenating placefiles together. To turn this feature on, add entries to the `BUNDLES` dictionary in the `configs.py` file. The individual parameter names must match dictionary keys in the `SCALAR_PARAMS` or `VECTOR_PARAMS` dictionaries.
@@ -115,7 +115,7 @@ For this example, we'll download HRRR data during the August 10th, 2020 Midwest 
 python get_data.py -s 2020-08-10/17 -e 2020-08-10/23 -m HRRR
 ```
 
-Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `./IO/data` directory and upscaled to 13 km grid spacing (same as the RAP). The original data files (>500 MB) will be deleted from the file system.
+Archived native hybrid-sigma coordinate HRRR data will be downloaded into the `MODEL_DIR` directory specified in the config file (or to a specific directory with the -p flag) and upscaled to 13 km grid spacing (same as the RAP). The original data files (>500 MB) will be deleted from the file system.
 
 The HRRR archive on the Google Cloud appears to go back to the 18z run on 2014-07-30, while RAP data is available back to the 00z run on 2021-02-22. The RAP/RUC archive on the THREDDS server goes back further, but you may notice more errors when downloading due to data response latencies during the web retrieval steps, as well as missing model runs.
 
@@ -127,7 +127,7 @@ If you request a considerable amount of data (numerous runs, HRRR data, etc.), y
 python process.py -s 2020-08-10/17 -e 2020-08-10/23 -meso
 ```
 
-You can view logs with `tail -f ./logs/*.log`. This will take a few minutes (hopefully your CPU is cooled well!). When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour.
+You can view logs with `tail -f ./logs/*.log`. This will take a few minutes. When the scripts finish, text placefiles should be available in the `output` directory. These will be named with a trailing `YYYYmmddHH-YYYYmmddHH` corresponding to the valid times of the data within the placefiles. Data will automatically time-match in GR to the closest hour.
 
 ### Hodographs
 ![](https://github.com/lcarlaw/meso/blob/master/hodograph_example.png)
@@ -144,7 +144,7 @@ python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON 
 * `TIME`: For a single model cycle time in the form `YYYY-mm-dd/HH`. Don't use with `-s` and `-e` specified.
 * `LAT_LON`: Latitude/longitude pair for hodograph creation. Form is `LAT/LON`. Currently only accepts one point at a time.
 * `STORM_MOTION`: The storm motion vector. It can take one of two forms. The first is either `BRM` for the Bunkers right-mover vector or `BLM` for the Bunkers left-mover vector. The second form is `DDD/SS`, where `DDD` is the direction the storm is coming from in degrees, and `SS` is the storm speed in knots. An example might be 240/35 (from the WSW at 35 kts). If the argument is not specified, the default is to use the Bunkers right-mover vector.
-* `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used. 
+* `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used.
 * `-sr`: Storm-relative flag. If set, hodographs are altered to plot in a storm-relative sense, similar to [Cameron Nixon's work here](https://cameronnixonphotography.wordpress.com/research/the-storm-relative-hodograph/).
 
 This plotting is done using modified code from Tim Supinie's [vad-plotter repo](https://github.com/tsupinie/vad-plotter).

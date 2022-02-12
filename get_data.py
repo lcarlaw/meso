@@ -171,7 +171,7 @@ def download_data(dts, data_path, model='RAP', num_hours=1):
     """
 
     return_status = False
-    if data_path is None: data_path = '%s/data' % (script_path)
+    #if data_path is None: data_path = '%s/data' % (script_path)
     sources = list(DATA_SOURCES.keys())
 
     fhrs = np.arange(1, int(num_hours)+1, 1)
@@ -307,8 +307,9 @@ def parse_logic(args):
     QC user inputs and send arguments to download functions.
 
     """
-    #if args.data_path is None: args.data_path = "%s/IO/data" % (script_path)
-    args.data_path = MODEL_DIR
+    if args.data_path is None:
+        args.data_path = MODEL_DIR
+
     timestr_fmt = '%Y-%m-%d/%H'
     log.info("----> New download processing")
 
@@ -353,6 +354,7 @@ def parse_logic(args):
         log.warning("Only 1 hour of forecast data available. Setting -n to 1")
         args.num_hours=1
 
+    log.info(f"Saving model data to: {MODEL_DIR}")
     with open("%s/download_status.txt" % (script_path), 'w') as f: f.write(str(False))
     status, download_dir = download_data(list(cycle_dt), data_path=args.data_path,
                                          model=args.model, num_hours=args.num_hours)

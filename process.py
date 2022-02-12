@@ -81,13 +81,14 @@ def create_placefiles(data, realtime=False):
         for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
             plot_arrays[i][item] = data[i][item]
 
+    #plot_arrays = import_for_testing('tests/sharppy.pickle')
+
     # Final filter (smoothing and masking logic) and plotting/placefiles.
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
 
     #export_for_testing('tests/sharppy.pickle', plot_arrays)
     #export_for_testing('tests/standard.pickle', prof_data)
-    #plot_arrays = import_for_testing('tests/sharppy.pickle')
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)
@@ -172,8 +173,8 @@ def main():
     ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
     ap.add_argument('-t', '--time-str', dest='time_str', help='Valid time for archived   \
                     model runs. Script will default to 1-hr forecasts. YYYY-MM-DD/HH')
-    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store model\
-                    data. Default will be set to the IO/data directory.')
+    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data.\
+                    Defaults to MODEL_DIR specified in the config file')
     ap.add_argument('-meso', dest='meso', action='store_true',
                     help='Flag to output mesoanalysis placefiles for GR2/Analyst.')
     ap.add_argument('-hodo', '--hodograph', dest='hodo',

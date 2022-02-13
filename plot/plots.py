@@ -8,10 +8,10 @@ from collections import defaultdict
 import logging as log
 
 import sharptab.winds as winds
-from configs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, barbconfigs, contourconfigs,
-                     plotconfigs, ALPHA, OUTPUT_DIR)
+from configs import ALPHA, OUTPUT_DIR
+from plotconfigs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, PLOTCONFIGS, barbconfigs,
+                         contourconfigs)
 
-#parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
 if not os.path.exists(OUTPUT_DIR): os.makedirs(OUTPUT_DIR)
 
@@ -156,19 +156,13 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     colors = kwargs.get('fill_colors')
     plotinfo = kwargs.get('varname', 'None')
 
-    #data = np.where(data < levels[0], np.nan, data)
     c = ax.contourf(lon, lat, np.where(data < levels[0], np.nan, data))
-
-    # Some fill_colors in config.py are single strings.
-    if type(colors) == list:
-        rgb = hex2rgb(colors[0])
-    else:
-        rgb = hex2rgb(colors)
 
     out = []
     out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
     out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
+    rgb = hex2rgb(colors[0])
     for collection in c.collections:
         for path in collection.get_paths():
             coords = path.vertices
@@ -304,8 +298,8 @@ def write_placefile(arrs, realtime=False):
             # Add any user-requested ploting configurations to the base. Add the variable
             # name to the configuration dictionary.
             configs = base_configs.copy()
-            if parm in plotconfigs:
-                config_overrides = plotconfigs[parm]
+            if parm in PLOTCONFIGS:
+                config_overrides = PLOTCONFIGS[parm]
                 configs.update(config_overrides)
             configs['varname'] = PARAMS[parm]
 

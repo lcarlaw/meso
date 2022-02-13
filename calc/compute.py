@@ -7,7 +7,8 @@ from numba.typed import List, Dict
 from numba.core import types
 import numpy as np
 
-from configs import SCALAR_PARAMS, VECTOR_PARAMS, SIGMA
+from configs import SIGMA
+from plotconfigs import SCALAR_PARAMS, VECTOR_PARAMS
 import sharptab.profile as profile
 import sharptab.params as params
 from sharptab.winds import vec2comp

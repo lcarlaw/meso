@@ -31,8 +31,6 @@ dependencies:
   - libedit=3.1.20191231
   - libev=4.33
   - libffi=3.3
-  - libgfortran=5.0.0
-  - libgfortran5=9.3.0
   - liblapack=3.9.0
   - libllvm10=10.0.1
   - libnetcdf=4.7.4
@@ -42,7 +40,6 @@ dependencies:
   - libssh2=1.9.0
   - libtiff=4.2.0
   - libwebp-base=1.2.0
-  - libzlib=1.2.11
   - llvm-openmp=11.1.0
   - llvmlite=0.36.0
   - lz4-c=1.9.3
@@ -68,7 +65,7 @@ dependencies:
   - python_abi=3.8
   - readline=8.1
   - requests=2.25.1
-  - schedule=1.1.0
+  - schedule
   - scipy=1.6.2
   - setuptools=49.6.0
   - six=1.15.0
@@ -81,17 +78,9 @@ dependencies:
   - zlib=1.2.11
   - zstd=1.4.9
   - pip:
-    - appdirs==1.4.4
     - geojson==2.5.0
     - geojsoncontour==0.4.0
-    - importlib-resources==5.4.0
-    - metpy==1.2.0
-    - packaging==21.3
+    - timeout-decorator
     - pandas==1.2.3
-    - pint==0.18
-    - pooch==1.6.0
     - pytz==2021.1
-    - timeout-decorator==0.5.0
-    - traitlets==5.1.1
     - xarray==0.17.0
-    - zipp==3.7.0

@@ -8,9 +8,8 @@ from multiprocessing import Pool, freeze_support
 import numpy as np
 import timeout_decorator
 
-from configs import WGRIB2, WGET, TIMEOUT, MINSIZE
-from configs import (MODEL_DIR, DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, vars,
-                     grid_info)
+from configs import (WGRIB2, WGET, TIMEOUT, MINSIZE, MODEL_DIR, DATA_SOURCES,
+                     GOOGLE_CONFIGS, THREDDS_CONFIGS, vars, grid_info)
 from utils.cmd import execute
 from utils.logs import logfile
 

@@ -10,13 +10,15 @@ import numpy as np
 from configs import SCALAR_PARAMS, VECTOR_PARAMS, SIGMA
 import sharptab.profile as profile
 import sharptab.params as params
+from sharptab.winds import vec2comp
+from sharptab.constants import KTS2MS
 from calc import derived
 from utils.timing import timeit
 
 float_array = types.float64[:,:] # No type expressions allowed in jitted functions
 @timeit
 @njit(parallel=True)
-def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
+def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
     """
     While numba massively speeds up our computations, we're limited in how we store and
     process our data. A dictionary registry of parameter calculations doesn't work, so
@@ -38,6 +40,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
         Array of wind speed values (KTS) [z,y,x]
     wdir: array_like
         Array of wind direction values (DEG) [z,y,x]
+    vort: array_like
+        Array of vertical vorticity values (s-1) at the surface [y,x]
     SCALARS: Numba typed List
         Scalar parameter keys, passed in from SCALAR_PARAMS in the config file
     VECTORS: Numba typed List
@@ -119,6 +123,9 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, SCALARS, VECTORS):
                                                                 d['ebwd_v'][j,i],
                                                                 mlpcl, eff_inflow[0],
                                                                 prof)
+            if 'nst' in SCALARS: d['nst'][j,i] = derived.nst(d['cape3km'][j,i],
+                                                             d['mlcin'][j,i], vort[j,i],
+                                                             prof)
     return d
 
 def sharppy_calcs(**kwargs):
@@ -134,9 +141,15 @@ def sharppy_calcs(**kwargs):
     wdir = kwargs.get('wdir')
     wspd = kwargs.get('wspd')
     pres = kwargs.get('pres')
+    lons = kwargs.get('lons')
+    lats = kwargs.get('lats')
+
+    # Vorticity calculations for NST parameter. 0th index from hybrid files is ~10m agl.
+    u, v = vec2comp(wdir[0,:,:], wspd[0,:,:]*KTS2MS)
+    vort = derived.vorticity(u, v, lons, lats)
 
     # Convert list of dictionary keys to numba typed list.
-    ret = worker(pres, tmpc, hght, dwpc, wspd, wdir, List(SCALAR_PARAMS.keys()),
+    ret = worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, List(SCALAR_PARAMS.keys()),
                  List(VECTOR_PARAMS.keys()))
 
     # Converison back to a 'normal' Python dictionary

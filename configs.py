@@ -29,7 +29,8 @@ SCALAR_PARAMS = {
     'srh500': '0-500 m Storm-Relative Helicity',
     'srh01km': '0-1 km Storm-Relative Helicity',
     'lr03km': '0-3 km Lapse Rate (C/km)',
-    'mllcl': 'Mixed-Layer LCL (m)'
+    'mllcl': 'Mixed-Layer LCL (m)',
+    'nst': 'Non-Supercell Tornado Parameter',
 }
 
 VECTOR_PARAMS = {
@@ -136,6 +137,13 @@ plotconfigs = {
         'colors': ['#ec904a', '#ec904a', '#ec904a', '#e94639', '#c23f34',
                    '#841f18', '#957cca', '#e951f5', '#e951f5'],
         'linewidths': [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    },
+
+    'nst': {
+        'colors': ['#ee8c40', '#ee8c40', '#ea4b3f', '#ea4b3f', '#ea4b3f', '#e848f5',
+                   '#e848f5'],
+        'levels': [0.5, 1, 2, 3, 4, 5, 6],
+        'linewidths': [1, 2, 3, 3, 3, 3, 3]
     },
 }
 

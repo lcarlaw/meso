@@ -73,7 +73,8 @@ def create_placefiles(data, realtime=False):
         arr = data[i]
         prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
                      'dwpc':arr['dwpc'], 'hght':arr['hght'],
-                     'wdir':arr['wdir'], 'wspd':arr['wspd']}
+                     'wdir':arr['wdir'], 'wspd':arr['wspd'],
+                     'lons':arr['lons'], 'lats':arr['lats']}
         plot_arrays.append(compute.sharppy_calcs(**prof_data))
 
     # Add the model run metadata

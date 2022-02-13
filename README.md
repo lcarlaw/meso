@@ -1,5 +1,5 @@
 # meso
-This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations, a step that is not performed with this code at this time.
+This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations, a step that is not performed with this code at this time. Also, a 1- and 2-hour forecast are linearly interpolated in time to produce several placefile updates each our. These will automatically time match in GR at :15 and :45. HRRR data, when used, is bilinearly interpolated to the 13-km RAP grid.
 
 This repo also has an archived mode, allowing the creation post-event reanalyses for use in local case studies.
 
@@ -17,9 +17,10 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 | Serial (1 thread)     | No      | 1959.84s               | 8022.01%            |
 
 ### To do:
+- [ ] Add DCAPE
 - [ ] Build simple Cressman or barnes surface analysis?
 - [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations.
-- [ ] Figure out GR's polygon fill rules: stripes on contour-filled plots?
+- [X] Figure out GR's polygon fill rules: stripes on contour-filled plots (sort of?)
 - [X] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file
 - [ ] Add capability to output images (.tif, high-res .png) of mesoanalysis parameters & upper-air variables
 - [X] Allow bundling of several placefiles together (i.e. MUCAPE and EBWD)

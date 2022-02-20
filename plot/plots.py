@@ -64,15 +64,15 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     else:
         c = ax.contour(lon, lat, data)
 
+    out = []
+    out.append('Title: %s | %s\n' % (plotinfo, time_str))
+    out.append('RefreshSeconds: 60\n')
+    out.append('Font: 1, 14, 1, "Arial"\n')
+    out.append('TimeRange: %s\n' % (timerange_str))
+
     # Max of data array is greater than minimum contour threshold
     if c is not None:
         geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
-
-        out = []
-        out.append('Title: %s | %s\n' % (plotinfo, time_str))
-        out.append('RefreshSeconds: 60\n')
-        out.append('Font: 1, 14, 1, "Arial"\n')
-        out.append('TimeRange: %s\n' % (timerange_str))
 
         #clabs = defaultdict(list) # Store contour labels
         for feature in geojson['features']:
@@ -111,8 +111,8 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
     # No contour values found. Would otherwise result in a
     # UserWarning: No contour levels were found within the data range
-    else:
-        out = ["\n"]
+    #else:
+    #    out = ["\n"]
 
     return out
 

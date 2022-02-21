@@ -1,10 +1,10 @@
 # meso
-This repo will create GR-readable placefiles of various parameters important to severe weather forecasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution for use in GRAnalyst. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations, a step that is not performed with this code at this time. Also, a 1- and 2-hour forecast are linearly interpolated in time to produce several placefile updates each our. These will automatically time match in GR at :15 and :45. HRRR data, when used, is bilinearly interpolated to the 13-km RAP grid.
+This repo will create GR-readable placefiles of various parameters important to severe weather nowcasting using data from the High Resolution Rapid Refresh (HRRR) or Rapid Refresh (RAP) models. The goal is to provide a very-near-realtime dataset that mimics the [SPC Mesoanalysis](https://www.spc.noaa.gov/exper/mesoanalysis/new/viewsector.php?sector=20#), but at a higher spatial resolution (13-km grid spacing in this case) for use in GRAnalyst. Slight differences may be noted due to SPC's use of an objective analysis pass that incorporates recent surface observations, a step that is not performed with this code at this time. Also, 1 and 2 hour forecasts are linearly interpolated in time to produce several placefile updates each hour. These will automatically time match in GR2 or GR2Analyst at :15 and :45. HRRR data, when used, is bi-linearly interpolated to the 13-km RAP grid.
 
 This repo also has an archived mode, allowing the creation post-event reanalyses for use in local case studies.
 
 ## Code Execution Time Improvements Using Numba
-The main overhaul was to accelerate the CPU-intensive thermodynamic calculations performed by SHARPpy using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba (use of `**kwargs` in function calls, masked numpy arrays, among other things). In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. As a result, the original SHARPpy code was parsed out line-by-line to allow it to work with Numba and the `@njit` decorator, and some flexibility has certainly been lost here. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
+The main overhaul was to accelerate the CPU-intensive thermodynamic calculations performed by the open-source [SHARPpy package](https://github.com/sharppy/SHARPpy) using the [Python Numba](http://numba.pydata.org/) module. This is a non-trivial task, as several standard Python modules and code are not supported by Numba (use of `**kwargs` in function calls, masked numpy arrays, among other things). In addition, the nature of the "Just-in-time" compilation requires explicit `type` declarations within Python `Classes`. The original SHARPpy code was modified to allow it to work with Numba and the `@njit` decorator, and some flexibility has likely been lost in the process. In this current iteration of code, it's assumed that the input meteorological arrays are full without any missing/masked data.
 
 The main overhead is due to the nature of "just-in-time" compilation whereby each of the "jitted" Python functions are translated and optimized to machine code. This is well worth it in this case due to the computationally-expensive lifting routines in SHARPpy, resulting in execution improvements which are orders of magnitude better than pure, interpreted, Python.
 
@@ -18,8 +18,8 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 
 ### To do:
 - [ ] Add DCAPE
-- [ ] Build simple Cressman or barnes surface analysis?
-- [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations.
+- [ ] Update divisor in surface vorticity term of NST for 13-km grid (25 compared to 8?)
+- [ ] Create gridded "on-the-fly" storm motion to refine ESRH, deviant tornado, etc. calculations?
 - [X] Figure out GR's polygon fill rules: stripes on contour-filled plots (sort of?)
 - [X] Centralized hosting of `windicons.png`. Changes to `barbconfigs` in config file
 - [ ] Add capability to output images (.tif, high-res .png) of mesoanalysis parameters & upper-air variables
@@ -29,7 +29,7 @@ Here is how a few benchmarks compare run on a 2019 Macbook Pro with a 2.3 GHz In
 - [X] Add better error logging to the download step
 
 ## Basic Setup Notes
-The setup proceeds using Anaconda, as well as assuming a completely vanilla Python3 install.
+The setup proceeds using Anaconda, as well as assuming a completely vanilla Python 3 install.
 
 ### Creating the base environment
 Run the following to create an Anaconda environment called `meso` with the required libraries:
@@ -79,13 +79,13 @@ python run.py
 Important log files will be located in the `LOG_DIR` directory. These can all be monitored in-line with `tail -f *.log`. `process.py` will run after model data has been successfully downloaded, and will output placefiles in the `output` directory. These files will automatically time match in GR, with an update occurring at :15 and :45.
 
 ##  Adding parameters
-Parameters to be output as placefiles are defined in the config file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. The key-value pairs will be used for the placefile name and verbose info string, respectively. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary with each key needing to match a key in either `SCALAR_PARAMS` or `VECTOR_PARAMS`.
+Parameters to be output as placefiles are defined in the `plotconfigs.py` file in the `SCALAR_PARAMS` and `VECTOR_PARAMS` dictionaries. The key-value pairs will be used for the placefile name and verbose info string, respectively. Base plot style specifications in the `contourconfigs` and `barbconfigs` dictionaries are overridden by individual entries in the `PLOTCONFIGS` dictionary with each key needing to match a key in either `SCALAR_PARAMS` or `VECTOR_PARAMS`.
 
 Parameter calculations are performed in `calc.compute`. Numba does not allow easy passing of a dictionary registry containing pointers to parameter calculation functions, so each parameter must be specified as an if-block within function `worker`. Specific calculations must be added as a function in `sharptab.derived` and called in the associated if-block within the `worker` function. For information on how to add SHARPpy calculations, see the [SHARPpy Scripting documentation](https://sharppy.github.io/SHARPpy/scripting.html).
 
 ### Parameter example
 Suppose we want to add 0-500 m Storm-Relative Helicity as a placefile. To do this:
-1. Add an entry to the `SCALAR_PARAMS` dictionary in the `configs.py` file:
+1. Add an entry to the `SCALAR_PARAMS` dictionary in the `plotconfigs.py` file:
 ```
 'srh500': '0-500 m Storm-Relative Helicity'
 ```
@@ -101,7 +101,7 @@ def srh500(prof):
 ```
 if 'srh500' in SCALARS: d['srh500'][j,i] = derived.srh500(prof, eff_inflow)
 ```
-4. Specify contouring configurations in the `PLOTCONFIGS` dictionary within the `configs.py` file. The dictionary key must match the key we used in step 1. If no entry is provided, plotting parameters will be specified via the `barbconfigs` or `contourconfigs` dictionaries.
+4. Specify contouring configurations in the `PLOTCONFIGS` dictionary within the `plotconfigs.py` file. The dictionary key must match the key we used in step 1. If no entry is provided, plotting parameters will be specified via the `barbconfigs` or `contourconfigs` dictionaries.
 
 ## Specifying multi-parameter placefile bundles  
 It is possible to load multiple placefiles with one entry by concatenating placefiles together. To turn this feature on, add entries to the `BUNDLES` dictionary in the `configs.py` file. The individual parameter names must match dictionary keys in the `SCALAR_PARAMS` or `VECTOR_PARAMS` dictionaries.
@@ -133,6 +133,8 @@ You can view logs with `tail -f ./logs/*.log`. This will take a few minutes. Whe
 ### Hodographs
 ![](https://github.com/lcarlaw/meso/blob/master/hodograph_example.png)
 
+Hodograph plotting is accomplished using modified code from Tim Supinie's excellent [vad-plotter repo](https://github.com/tsupinie/vad-plotter).
+
 Usage to create hodographs is as follows:
 
 ```
@@ -147,5 +149,3 @@ python process.py [ -s START_TIME ] [ -e END_TIME ] [ -t TIME ] [ -hodo LAT_LON 
 * `STORM_MOTION`: The storm motion vector. It can take one of two forms. The first is either `BRM` for the Bunkers right-mover vector or `BLM` for the Bunkers left-mover vector. The second form is `DDD/SS`, where `DDD` is the direction the storm is coming from in degrees, and `SS` is the storm speed in knots. An example might be 240/35 (from the WSW at 35 kts). If the argument is not specified, the default is to use the Bunkers right-mover vector.
 * `SFC_WIND`: The surface wind vector. Its form is the same as the `DDD/SS` form of the storm motion vector. If none is specified, the lowest-model level wind will be used.
 * `-sr`: Storm-relative flag. If set, hodographs are altered to plot in a storm-relative sense, similar to [Cameron Nixon's work here](https://cameronnixonphotography.wordpress.com/research/the-storm-relative-hodograph/).
-
-This plotting is done using modified code from Tim Supinie's [vad-plotter repo](https://github.com/tsupinie/vad-plotter).

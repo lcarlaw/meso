@@ -8,13 +8,12 @@ from collections import defaultdict
 import logging as log
 
 import sharptab.winds as winds
-from configs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, barbconfigs, contourconfigs,
-                     plotconfigs, ALPHA)
+from configs import ALPHA, OUTPUT_DIR
+from plotconfigs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, PLOTCONFIGS, barbconfigs,
+                         contourconfigs)
 
-parent_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
-outdir = "%s/output" % (parent_path)
-if not os.path.exists(outdir): os.makedirs(outdir)
+if not os.path.exists(OUTPUT_DIR): os.makedirs(OUTPUT_DIR)
 
 def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     """
@@ -59,55 +58,67 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     plotinfo = kwargs.get('varname', 'None')
 
     if levels is not None and colors is not None:
-        c = ax.contour(lon, lat, data, levels, colors=colors)
+        c = None
+        if np.nanmax(data) >= np.min(levels):
+            c = ax.contour(lon, lat, data, levels, colors=colors)
     else:
         c = ax.contour(lon, lat, data)
-    geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
 
     out = []
     out.append('Title: %s | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 5\n')
+    out.append('RefreshSeconds: 60\n')
     out.append('Font: 1, 14, 1, "Arial"\n')
     out.append('TimeRange: %s\n' % (timerange_str))
 
-    #clabs = defaultdict(list) # Store contour labels
-    for feature in geojson['features']:
-        clabs = defaultdict(list) # Store contour labels
-        coords = feature['geometry']['coordinates']
-        level = '%s' % (round(feature['properties']['level-value'], 1))
-        idx = feature['properties']['level-index']
-        if int(levels[idx]) == int(float(level)):
-            try:
-                lws = list(kwargs['linewidths'])
-                linewidth = lws[idx]
-            except:
-                linewidth = kwargs['linewidths']
-        else:
-            linewidth = 1
+    # Max of data array is greater than minimum contour threshold
+    if c is not None:
+        geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
 
-        rgb = hex2rgb(feature['properties']['stroke'])
-        out.append('Color: %s 255\n' % (' '.join(rgb)))
-        out.append('Line: %s, 0, "%s: %s"\n' % (linewidth, plotinfo, level))
+        #clabs = defaultdict(list) # Store contour labels
+        for feature in geojson['features']:
+            clabs = defaultdict(list) # Store contour labels
+            coords = feature['geometry']['coordinates']
+            level = '%s' % (round(feature['properties']['level-value'], 1))
+            idx = feature['properties']['level-index']
+            if int(levels[idx]) == int(float(level)):
+                try:
+                    lws = list(kwargs['linewidths'])
+                    linewidth = lws[idx]
+                except:
+                    linewidth = kwargs['linewidths']
+            else:
+                linewidth = 1
 
-        KNT = 0
-        for coord in coords:
-            out.append(' %s, %s\n' % (coord[1], coord[0]))
-            if KNT % 30 == 0: clabs[level].append([coord[1], coord[0]])
-            KNT += 1
-        out.append('End:\n\n')
+            rgb = hex2rgb(feature['properties']['stroke'])
+            out.append('Color: %s 255\n' % (' '.join(rgb)))
+            out.append('Line: %s, 0, "%s: %s"\n' % (linewidth, plotinfo, level))
 
-        # Contour labels
-        for lev in clabs.keys():
-            for val in clabs[lev]:
-                if float(lev) >= 9: lev = int(float(lev))
-                out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
-        out.append('\n')
+            KNT = 0
+            for coord in coords:
+                out.append(' %s, %s\n' % (coord[1], coord[0]))
+                if KNT % 30 == 0: clabs[level].append([coord[1], coord[0]])
+                KNT += 1
+            out.append('End:\n\n')
 
-    plt.close(fig)
+            # Contour labels
+            for lev in clabs.keys():
+                for val in clabs[lev]:
+                    if float(lev) >= 9: lev = int(float(lev))
+                    out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
+            out.append('\n')
+
+        plt.close(fig)
+
+    # No contour values found. Would otherwise result in a
+    # UserWarning: No contour levels were found within the data range
+    #else:
+    #    out = ["\n"]
+
     return out
 
 def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
-    """Contour-filled plot using geojsoncontour.
+    """Contour-filled plot. Updates to attempt to limit "cross-over" lines when plotting
+    Polygons in GR.
 
     Parameters:
     -----------
@@ -143,6 +154,67 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
 
     levels = kwargs.get('fill_levels')
     colors = kwargs.get('fill_colors')
+    plotinfo = kwargs.get('varname', 'None')
+
+    c = ax.contourf(lon, lat, np.where(data < levels[0], np.nan, data))
+
+    out = []
+    out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
+    out.append('RefreshSeconds: 60\n')
+    out.append('TimeRange: %s\n' % (timerange_str))
+    rgb = hex2rgb(colors[0])
+    for collection in c.collections:
+        for path in collection.get_paths():
+            coords = path.vertices
+            if len(coords) < 3:
+                continue
+            out.append('Polygon:\n')
+            first_line = True
+            for i in range(len(coords)):
+                COLOR = ""
+                if first_line:
+                    COLOR ='%s, %s' % (', '.join(rgb), ALPHA)
+                out.append(f" {coords[i][1]}, {coords[i][0]}, {COLOR}\n")
+                first_line = False
+            out.append("End:\n")
+            out.append("\n")
+    plt.close(fig)
+    return out
+
+def contourf_original(lon, lat, data, time_str, timerange_str, **kwargs):
+    """[DEPRECATED] Contour-filled plot using geojsoncontour.
+
+    Parameters:
+    -----------
+    lon : array_like
+        2-D array of longitudes. Must be same shape as data
+    lat : array_like
+        2-D array of latitudes. Must be same shape as data
+    data : array_like [N, M]
+        Values over which contour fill is drawn
+    time_str : string
+        Valid time for this plot. Included in the placefile title
+    timerange_str : string
+        Valid time range over which to display in GR
+    Other Parameters:
+    -----------------
+    levels : list, array
+        Number and positions of the contour lines / regions
+    colors : color string (hexademicals)
+        Colors corresponding to each contour-fill level
+    plotinfo : string
+        Brief description of the plot
+    Returns:
+    --------
+    out : list
+        List of strings, each corresponding to a new line for the placefile
+    """
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    levels = kwargs.get('fill_levels')
+    colors = kwargs.get('fill_colors')
 
     plotinfo = kwargs.get('varname', 'None')
     c = ax.contourf(lon, lat, data, levels, colors=colors)
@@ -150,7 +222,7 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
 
     out = []
     out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 5\n')
+    out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     for feature in geojson['features']:
         rgb = hex2rgb(feature['properties']['fill'])
@@ -226,8 +298,8 @@ def write_placefile(arrs, realtime=False):
             # Add any user-requested ploting configurations to the base. Add the variable
             # name to the configuration dictionary.
             configs = base_configs.copy()
-            if parm in plotconfigs:
-                config_overrides = plotconfigs[parm]
+            if parm in PLOTCONFIGS:
+                config_overrides = PLOTCONFIGS[parm]
                 configs.update(config_overrides)
             configs['varname'] = PARAMS[parm]
 
@@ -268,9 +340,9 @@ def write_placefile(arrs, realtime=False):
         if not realtime:
             save_time = "%s-%s" % (arrs[0]['valid_time'].strftime('%Y%m%d%H'),
                                    arrs[-1]['valid_time'].strftime('%Y%m%d%H'))
-            out_file = '%s/%s_%s.txt' % (outdir, parm, save_time)
+            out_file = '%s/%s_%s.txt' % (OUTPUT_DIR, parm, save_time)
         else:
-            out_file = '%s/%s.txt' % (outdir, parm)
+            out_file = '%s/%s.txt' % (OUTPUT_DIR, parm)
         with open(out_file, 'w') as f: f.write("".join(output))
 
     # Write any bundled placefiles
@@ -298,15 +370,15 @@ def write_bundles(save_time):
     # If entries exist in the BUNDLES dictionary, output bundled placefiles
     for bundle_name, parameters in BUNDLES.items():
         log.info("Writing bundle: %s with components: %s" % (bundle_name, parameters))
-        bundle_file = '%s/%s.txt' % (outdir, bundle_name)
+        bundle_file = '%s/%s.txt' % (OUTPUT_DIR, bundle_name)
         if save_time:
-            bundle_file = '%s/%s_%s.txt' % (outdir, bundle_name, save_time)
+            bundle_file = '%s/%s_%s.txt' % (OUTPUT_DIR, bundle_name, save_time)
 
         with open(bundle_file, 'w') as f:
             for parm in parameters:
-                filename = '%s/%s.txt' % (outdir, parm)
+                filename = '%s/%s.txt' % (OUTPUT_DIR, parm)
                 if save_time:
-                    filename = '%s/%s_%s.txt' % (outdir, parm, save_time)
+                    filename = '%s/%s_%s.txt' % (OUTPUT_DIR, parm, save_time)
                 try:
                     in_file = open(filename, 'r')
                     lines = in_file.readlines()
@@ -354,7 +426,7 @@ def barbs(lon, lat, U, V, time_str, timerange_str, **kwargs):
     skip = kwargs.get('skip', 6)
     out = []
     out.append('Title: %s | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 5\n')
+    out.append('RefreshSeconds: 60\n')
     out.append('TimeRange: %s\n' % (timerange_str))
     out.append('Color: 255 255 255\n')
     out.append('IconFile: 1, 28, 28, 14, 14, "%s"\n' % (iconfile))

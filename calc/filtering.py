@@ -4,7 +4,8 @@
 import numpy as np
 import logging
 from scipy.ndimage import gaussian_filter
-from configs import SCALAR_PARAMS, VECTOR_PARAMS, FILTER_SPECS, SIGMA
+from configs import SIGMA
+from plotconfigs import SCALAR_PARAMS, VECTOR_PARAMS, FILTER_SPECS
 
 def eval_binary(op1, oper, op2, val):
     import operator

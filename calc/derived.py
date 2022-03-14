@@ -13,6 +13,46 @@ import sharptab.params as params
 from calc.vector import transform
 
 @njit
+def nst(cape3km, mlcin, vort, prof):
+    u, v = bulk_shear(prof, height=6000)
+    shear = np.sqrt(u*u + v*v)
+    gamma = lapse_rate(prof, lower=0, upper=1000)
+
+    # The profile object has winds in kts, so bulk_shear method returns kts. Altered shear
+    # term coefficients to match
+    nst = (gamma/9) * (cape3km/100) * ((225-mlcin)/200) * ((34.9892-shear)/9.71922) * \
+          (vort/8e-5)
+    return nst
+
+def vorticity(u, v, longitude, latitude):
+    """
+    Compute the relative vertical vorticity
+
+    Parameters:
+    -----------
+    u: array_like
+        Wind components (m/s) in the x-direction
+    v: array_like
+        Wind components (m/s) in the y-direction
+    longitude: array_like
+        Grid of longitudes
+    latitude: array_like
+        Grid of latitudes
+
+    Returns:
+    --------
+    vorticity: array_like
+        Vertical vorticity (s-1)
+
+    """
+    from sharptab.thermo import lat_lon_grid_deltas, first_derivative
+
+    dx, dy = lat_lon_grid_deltas(longitude, latitude)
+    dudy = first_derivative(u, delta=dy, axis=-2)
+    dvdx = first_derivative(v, delta=dx, axis=-1)
+    return np.asarray(dvdx - dudy)
+
+@njit
 def lapse_rate(prof, lower=0, upper=3000):
     """
     Compute the lapse rate between two layers.

@@ -14,6 +14,7 @@ from utils.timing import timeit
 
 from plot.plots import write_placefile
 from plot.hodographs import parse_vector, compute_parameters, plot_hodograph
+from configs import MODEL_DIR
 
 import IO.read as read
 from utils.cmd import execute
@@ -21,6 +22,11 @@ from utils.logs import logfile
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 log = logfile('process')
+
+def import_for_testing(testfile):
+    import pickle
+    with open(testfile, 'rb') as datafile:
+        return pickle.load(datafile)
 
 def export_for_testing(testfile, data):
     import pickle
@@ -67,7 +73,8 @@ def create_placefiles(data, realtime=False):
         arr = data[i]
         prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
                      'dwpc':arr['dwpc'], 'hght':arr['hght'],
-                     'wdir':arr['wdir'], 'wspd':arr['wspd']}
+                     'wdir':arr['wdir'], 'wspd':arr['wspd'],
+                     'lons':arr['lons'], 'lats':arr['lats']}
         plot_arrays.append(compute.sharppy_calcs(**prof_data))
 
     # Add the model run metadata
@@ -75,12 +82,14 @@ def create_placefiles(data, realtime=False):
         for item in ['valid_time', 'cycle_time', 'fhr', 'lons', 'lats']:
             plot_arrays[i][item] = data[i][item]
 
+    #plot_arrays = import_for_testing('tests/sharppy.pickle')
+
     # Final filter (smoothing and masking logic) and plotting/placefiles.
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
-    
-    #export_for_testing('tests/CAE_QLCS-sharppy.pickle', plot_arrays)
-    #export_for_testing('tests/CAE_QLCS-standard.pickle', prof_data)
+
+    #export_for_testing('tests/sharppy.pickle', plot_arrays)
+    #export_for_testing('tests/standard.pickle', prof_data)
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)
@@ -95,7 +104,7 @@ def query_files(filepath):
         if len(files) > 1: log.warning("More than 1 model file in %s" % (filepath))
         return files[0]
     else:
-        log.warning("No model data found in %s" % (filepath))
+        log.error("No model data found in %s" % (filepath))
         sys.exit(1)
 
 def parse_logic(args):
@@ -126,11 +135,8 @@ def parse_logic(args):
         log.error("Missing one of -hodo, -meso")
         sys.exit(1)
 
-    path_flag = "-p %s/IO/data" % (script_path)
-    if args.data_path is not None:
-        path_flag = "-p %s" % (args.data_path)
-    else:
-        args.data_path = "%s/IO/data" % (script_path)
+    if args.data_path is None:
+        args.data_path = MODEL_DIR
 
     # Logic for reading data. If this is a realtime run, look for the three data files
     # at forecast hours 1, 1.5, and 2. These will only ever be for one model cycle. If
@@ -141,7 +147,6 @@ def parse_logic(args):
     dt = dt_start
     while dt <= dt_end:
         filepath = "%s/%s" % (args.data_path, dt.strftime('%Y-%m-%d/%H'))
-        print(filepath)
         if args.realtime:
             for grb in ['0_0', '0_50', '1_0']:
                 data.append(read.read_data("%s/%s.grib2" % (filepath, grb)))
@@ -169,8 +174,8 @@ def main():
     ap.add_argument('-e', dest='end_time', help='Last valid time for analysis')
     ap.add_argument('-t', '--time-str', dest='time_str', help='Valid time for archived   \
                     model runs. Script will default to 1-hr forecasts. YYYY-MM-DD/HH')
-    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store model\
-                    data. Default will be set to the IO/data directory.')
+    ap.add_argument('-p', '--data_path', dest='data_path', help='Directory to store data.\
+                    Defaults to MODEL_DIR specified in the config file')
     ap.add_argument('-meso', dest='meso', action='store_true',
                     help='Flag to output mesoanalysis placefiles for GR2/Analyst.')
     ap.add_argument('-hodo', '--hodograph', dest='hodo',

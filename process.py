@@ -35,12 +35,21 @@ def export_for_testing(testfile, data):
 
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):
+
     for i in range(len(data)):
         arr = data[i]
         idx = interp.nearest_idx(point, arr['lons'], arr['lats'])
+        prof_data = {'pres':arr['pres'][:,idx[0][0],idx[0][1]],
+                     'tmpc':arr['tmpc'][:,idx[0][0],idx[0][1]],
+                     'dwpc':arr['dwpc'][:,idx[0][0],idx[0][1]],
+                     'hght':arr['hght'][:,idx[0][0],idx[0][1]],
+                     'wdir':arr['wdir'][:,idx[0][0],idx[0][1]],
+                     'wspd':arr['wspd'][:,idx[0][0],idx[0][1]],
+                     }
+        hodo_data = compute.single_point_sharppy_calcs(storm_motion, **prof_data)
+
         u, v = winds.vec2comp(arr['wdir'][:,idx[0][0], idx[0][1]],
                               arr['wspd'][:,idx[0][0], idx[0][1]])
-        hodo_data = {}
         heights = arr['hght'][:,idx[0][0], idx[0][1]] / 1000.
         mask = np.where(heights < 12)
         hodo_data['hght'] = heights[mask]

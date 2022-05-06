@@ -12,7 +12,7 @@ PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
 
-OUTPUT_DIR = '/Users/leecarlaw/Desktop/test'            # Location to store placefiles
+OUTPUT_DIR = '/Users/leecarlaw/scripts/meso/placefile_requests'
 MODEL_DIR = '/Users/leecarlaw/model_data'               # Location to store model data
 LOG_DIR = '/Users/leecarlaw/scripts/meso/output/logs'   # Logfile output
 

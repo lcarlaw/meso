@@ -235,9 +235,15 @@ def _plot_data(data, parameters, storm_relative=False):
         ca_u = np.nan
         ca_v = np.nan
 
-    mkr_z = np.arange(16)
+    #mkr_z = np.arange(16)
+    mkr_z = [ 0,  0.5, 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15]
     mkr_u = np.interp(mkr_z, alt, u, left=np.nan, right=np.nan)
     mkr_v = np.interp(mkr_z, alt, v, left=np.nan, right=np.nan)
+
+    # Effective inflow and EBWD levels
+    effective_layers = [data['ebot']/1000., data['etop']/1000., data['ebwd_top']/1000.]
+    effective_u = np.interp(effective_layers, alt, u)
+    effective_v = np.interp(effective_layers, alt, v)
 
     for idx in range(len(_seg_hghts) - 1):
         idx_start = seg_idxs[idx]
@@ -274,11 +280,12 @@ def _plot_data(data, parameters, storm_relative=False):
         if not np.isnan(um):
             pylab.text(um, vm - 0.1, str(zm), va='center', ha='center', color='white',
                        size=6.5, fontweight='bold')
-    try:
-        pylab.plot([storm_u, u[0]], [storm_v, v[0]], 'c-', linewidth=0.75)
-        pylab.plot([u[0], ca_u], [v[0], ca_v], 'm-', linewidth=0.75)
-    except IndexError:
-        pass
+
+    #try:
+    #    pylab.plot([storm_u, u[0]], [storm_v, v[0]], 'c-', linewidth=0.75)
+    #    pylab.plot([u[0], ca_u], [v[0], ca_v], 'm-', linewidth=0.75)
+    #except IndexError:
+    #    pass
 
 
     if not (np.isnan(bl_u) or np.isnan(bl_v)):
@@ -305,6 +312,11 @@ def _plot_data(data, parameters, storm_relative=False):
         pylab.plot(storm_u, storm_v, 'w+', markersize=6)
         pylab.text(storm_u + 0.5, storm_v - 0.5, "SM", ha='left', va='top',
                    color='#fafafa', fontsize=10)
+
+    pylab.plot([storm_u, effective_u[0]], [storm_v, effective_v[0]], '-', color='w',
+               linewidth=0.75)
+    pylab.plot([storm_u, effective_u[1]], [storm_v, effective_v[1]], '-', color='w',
+               linewidth=0.75)
 
     if storm_relative:
         pylab.arrow(0, 0, original_SM[0], original_SM[1], width=1, length_includes_head=True)
@@ -340,6 +352,15 @@ def _plot_param_table(parameters, web=False):
 
     line_y -= line_space
 
+    pylab.text(start_x, line_y, "Effective Inflow", fontweight='bold', **kwargs)
+    val = '--'
+    if parameters['etop'] - parameters['ebot'] > 400:
+        val = "--" if np.isnan(parameters['esrh']) else "%d" % \
+                               int(parameters['esrh'])
+    pylab.text(start_x+0.22,  line_y, val, **kwargs)
+
+    line_y -= line_space
+
     pylab.text(start_x, line_y, "0-1 km", fontweight='bold', **kwargs)
     val = "--" if np.isnan(parameters['shear_mag_1km']) else "%d" % \
                            int(parameters['shear_mag_1km'])
@@ -367,9 +388,11 @@ def _plot_param_table(parameters, web=False):
     line_y -= line_space
     #cstop = np.clip(0.033*parameters['shear_mag_16km']-0.33, 0, 1)
     #font_color = plt.get_cmap('RdYlBu_r')(cstop)[:-1]
-    pylab.text(start_x, line_y, "1-6 km", fontweight='bold', **kwargs)
-    val = "--" if np.isnan(parameters['shear_mag_16km']) else "%d" % \
-                           int(parameters['shear_mag_16km'])
+    pylab.text(start_x, line_y, "EBWD", fontweight='bold', **kwargs)
+    #val = "--" if np.isnan(parameters['shear_mag_16km']) else "%d" % \
+    #                       int(parameters['shear_mag_16km'])
+    val = "--" if np.isnan(parameters['ebwd']) else "%d" % \
+                           int(parameters['ebwd'])
     pylab.text(start_x+0.095, line_y, val, **kwargs)
 
     spacer = Line2D([start_x, start_x+0.361], [line_y-line_space*0.48]*2, color='#dcdcdc',
@@ -486,6 +509,10 @@ def plot_hodograph(data, parameters, storm_relative=False):
 
     _plot_background(min_u, max_u, min_v, max_v)
     _plot_data(data, parameters, storm_relative=storm_relative)
+    parameters['ebwd'] = data['ebwd']
+    parameters['ebot'] = data['ebot']
+    parameters['etop'] = data['etop']
+    parameters['esrh'] = data['esrh']
     _plot_param_table(parameters)
 
     loc_str = "%s, %s" % (round(data['lon'], 2), round(data['lat'], 2))

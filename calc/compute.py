@@ -11,7 +11,7 @@ from configs import SIGMA
 from plotconfigs import SCALAR_PARAMS, VECTOR_PARAMS
 import sharptab.profile as profile
 import sharptab.params as params
-from sharptab.winds import vec2comp
+from sharptab.winds import vec2comp, helicity
 from sharptab.constants import KTS2MS
 from calc import derived
 from utils.timing import timeit
@@ -157,3 +157,51 @@ def sharppy_calcs(**kwargs):
     output = {}
     for k, v in ret.items(): output[k] = v
     return output
+
+def single_point_sharppy_calcs(storm_motion, **kwargs):
+    """
+    Perform parcel lifting and calculations, but for a single point to populate on a
+    hodograph.
+
+    """
+    import sharptab.interp as interp
+
+    tmpc = kwargs.get('tmpc')
+    dwpc = kwargs.get('dwpc')
+    hght = kwargs.get('hght')
+    wdir = kwargs.get('wdir')
+    wspd = kwargs.get('wspd')
+    pres = kwargs.get('pres')
+
+    prof = profile.create_profile(pres=pres, tmpc=tmpc,
+                                  hght=hght, dwpc=dwpc,
+                                  wspd=wspd, wdir=wdir)
+
+    eff_inflow = params.effective_inflow_layer(prof)
+    ebot = interp.to_agl(prof, interp.hght(prof, eff_inflow[0]))
+    etop = interp.to_agl(prof, interp.hght(prof, eff_inflow[1]))
+
+    mupcl = params.parcelx(prof, flag=3)
+    ebwd_top = (mupcl.elhght + ebot) / 2.
+    ebwd = derived.ebwd(prof, mupcl, eff_inflow)
+
+    if storm_motion.lower() in ['blm', 'left-mover']:
+        SM = derived.lm5(prof)
+    elif storm_motion.lower() in ['brm', 'right-mover']:
+        SM = derived.rm5(prof)
+    #elif storm_motion.lower() in ['mnw', 'mean-wind']:
+    #    params['storm_motion'] = params['mean_wind']
+    else:
+        SM = tuple(int(v) for v in storm_motion.split('/'))
+        SM = vec2comp(SM[0], SM[1])
+    esrh = helicity(prof, ebot, etop, stu=SM[0], stv=SM[1])[0]
+
+    parcel_data = {
+        'esrh': esrh,
+        'ebot': ebot,
+        'etop': etop,
+        'ebwd': np.sqrt(ebwd[0]**2 + ebwd[1]**2),
+        'ebwd_top': ebwd_top,
+    }
+    print(parcel_data)
+    return parcel_data

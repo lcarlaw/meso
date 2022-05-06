@@ -14,3 +14,4 @@ test_filtering.py
 test.py
 test.txt
 placefile_tests.py
+placefile_requests/

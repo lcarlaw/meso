@@ -181,67 +181,6 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     plt.close(fig)
     return out
 
-def contourf_original(lon, lat, data, time_str, timerange_str, **kwargs):
-    """[DEPRECATED] Contour-filled plot using geojsoncontour.
-
-    Parameters:
-    -----------
-    lon : array_like
-        2-D array of longitudes. Must be same shape as data
-    lat : array_like
-        2-D array of latitudes. Must be same shape as data
-    data : array_like [N, M]
-        Values over which contour fill is drawn
-    time_str : string
-        Valid time for this plot. Included in the placefile title
-    timerange_str : string
-        Valid time range over which to display in GR
-    Other Parameters:
-    -----------------
-    levels : list, array
-        Number and positions of the contour lines / regions
-    colors : color string (hexademicals)
-        Colors corresponding to each contour-fill level
-    plotinfo : string
-        Brief description of the plot
-    Returns:
-    --------
-    out : list
-        List of strings, each corresponding to a new line for the placefile
-    """
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    levels = kwargs.get('fill_levels')
-    colors = kwargs.get('fill_colors')
-
-    plotinfo = kwargs.get('varname', 'None')
-    c = ax.contourf(lon, lat, data, levels, colors=colors)
-    geojson = json.loads(geojsoncontour.contourf_to_geojson(contourf=c, ndigits=15))
-
-    out = []
-    out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 60\n')
-    out.append('TimeRange: %s\n' % (timerange_str))
-    for feature in geojson['features']:
-        rgb = hex2rgb(feature['properties']['fill'])
-        groups = feature['geometry']['coordinates']
-        for group in groups:
-            out.append('Polygon:\n')
-            first_line = True
-            for item in group[0]:
-                if first_line:
-                    COLOR ='%s, %s' % (', '.join(rgb), ALPHA)
-                else:
-                    COLOR = ''
-                out.append(' %s, %s, %s\n' % (item[1], item[0], COLOR))
-                first_line = False
-            out.append('End:\n')
-            out.append('\n')
-    plt.close(fig)
-    return out
-
 def write_placefile(arrs, realtime=False):
     """
     Main function controlling the plotting of GR2/Analyst-readable placefiles. Called
@@ -500,28 +439,29 @@ def barbs_devtor(lon, lat, U, V, deviance, time_str, timerange_str, **kwargs):
     for j in range(U.shape[0])[::skip]:
         for i in range(V.shape[1])[::skip]:
             wdir, wspd = winds.comp2vec(float(U[j,i]), float(V[j,i]))
-            wspd = np.clip(wspd, 2.6, 52) # For time being, limit max storm speed
-
-            if wspd > 0:
-                # Determine reference column first
+            wspd = np.clip(wspd, 0, 52)
+            if wspd > 2.5 and deviance[j,i] >= 0.75:
+                # Determine reference column based on deviant tornado motion speed. 
                 wspd_rounded = 5 * round(wspd/5)
                 column = int(wspd_rounded//5)
 
-                # Determine reference row based on relative deviance. Values between 0.75
-                # and 1 will be "white", while values above 1.75 will be red.
+                # ========================================================================
+                # Row and column lookup logic will need to change if the number of barbs
+                # in the DEVTOR_ICONS file change!
+                # ========================================================================
                 rounded_deviance = np.clip(round(deviance[j,i]*4) / 4, 0, 2)
-                if rounded_deviance >= 0.75:
-                    row = (rounded_deviance//.25) - 3
-                    numref = column + (row * 10)
+                row = (rounded_deviance//.25) - 3
+                numref = column + (row * 10)
 
-                    out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')
-                    out.append('  Threshold: 999\n')
+                out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')
+                out.append('  Threshold: 999\n')
 
-                    # Override the plotinfo string for the deviant tornado motion vectors.
-                    # Add relative deviance and speed to the output text string.
-                    infostring = f"{plotinfo}: Deviance: {round(deviance[j,i],2)} | Speed: {round(wspd,1)}"
-                    out.append(f"  Icon: 0,0,{wdir},1,{numref},{infostring}\n")
-                    out.append('End:\n\n')
+                # Override the plotinfo string for the deviant tornado motion vectors.
+                # Add relative deviance and speed to the output text string.
+                info = f"Deviance: {round(deviance[j,i],2)} | Speed: {round(wspd,1)}"
+                infostring = f"{plotinfo}: {info}"
+                out.append(f"  Icon: 0,0,{wdir},1,{numref},{infostring}\n")
+                out.append('End:\n\n')
     return out
 
 def hex2rgb(hex):

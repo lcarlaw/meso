@@ -19,7 +19,7 @@ LOG_DIR = '/Users/leecarlaw/scripts/meso/output/logs'   # Logfile output
 # URL or local path to wind icon files
 WIND_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/windicons.png'
 SHEAR1_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/shr1icons.png'
-DEVTOR_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/devtor.png'
+DEVTOR_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/deviant-motion/output/devtor.png'
 
 ##########################################################################################
 # Download configurations

@@ -130,13 +130,12 @@ def devtor(prof):
     """
     # Deviant tornado motion
     sfc = prof.pres[prof.sfc]
-    A = winds.mean_wind(prof, pbot=sfc, ptop=interp.pres(prof, interp.to_msl(prof, 500)))
-    B = rm5(prof)
-    u_tor = 0.5 * (A[0] + B[0])
-    v_tor = 0.5 * (A[1] + B[1])
+    A = winds.mean_wind(prof, pbot=sfc, ptop=interp.pres(prof, interp.to_msl(prof, 300)))
+    RM5 = rm5(prof)
+    u_tor = 0.5 * (A[0] + RM5[0])
+    v_tor = 0.5 * (A[1] + RM5[1])
 
     # Storm motion (Bunkers right for now):
-    RM5 = rm5(prof)
     u_sr = u_tor - RM5[0]
     v_sr = v_tor - RM5[1]
     storm_relative_deviance = np.sqrt(np.square(u_sr) + np.square(v_sr))

@@ -122,15 +122,28 @@ def estp(mlcape, mlcin, esrh, ebwd_u, ebwd_v, mlpcl, eff_inflow_base, prof):
 def devtor(prof):
     """
     Deviant tornado motion following Cameron Nixon's work:
-    https://cameronnixonphotography.wordpress.com/research/anticipating-deviant-tornado-motion/
+    https://journals.ametsoc.org/view/journals/wefo/36/1/WAF-D-20-0056.1.xml
+
+    Updates: Email correspondence on 5/10 to create tornado "deviance" (i.e. how deviant
+    could these deviant motions be?)
 
     """
+    # Deviant tornado motion
     sfc = prof.pres[prof.sfc]
-    A = winds.mean_wind(prof, pbot=sfc, ptop=interp.pres(prof, interp.to_msl(prof, 500)))
-    B = rm5(prof)
-    u = 0.5 * (A[0] + B[0])
-    v = 0.5 * (A[1] + B[1])
-    return (u, v)
+    A = winds.mean_wind(prof, pbot=sfc, ptop=interp.pres(prof, interp.to_msl(prof, 300)))
+    RM5 = rm5(prof)
+    u_tor = 0.5 * (A[0] + RM5[0])
+    v_tor = 0.5 * (A[1] + RM5[1])
+
+    # Storm motion (Bunkers right for now):
+    u_sr = u_tor - RM5[0]
+    v_sr = v_tor - RM5[1]
+    storm_relative_deviance = np.sqrt(np.square(u_sr) + np.square(v_sr))
+    tornado_speed = np.sqrt(np.square(u_tor) + np.square(v_tor))
+    storm_speed = np.sqrt(np.square(RM5[0]) + np.square(RM5[1]))
+    deviance = (storm_relative_deviance) / ((tornado_speed + storm_speed) / 2)
+
+    return (u_tor, v_tor, deviance)
 
 @njit
 def lm5(prof):

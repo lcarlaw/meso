@@ -1,4 +1,4 @@
-from configs import WIND_ICONS, SHEAR1_ICONS
+from configs import WIND_ICONS, SHEAR1_ICONS, DEVTOR_ICONS
 
 ##########################################################################################
 # Plotting configurations
@@ -15,6 +15,7 @@ SCALAR_PARAMS = {
     'lr03km': '0-3 km Lapse Rate (C/km)',
     'mllcl': 'Mixed-Layer LCL (m)',
     'nst': 'Non-Supercell Tornado Parameter',
+    'deviance': 'Perceived Tornado Deviance'
 }
 
 VECTOR_PARAMS = {
@@ -127,16 +128,28 @@ PLOTCONFIGS = {
     },
 
     'rm5': {
-        'skip': 3
+        'skip': 2
     },
 
     'lm5': {
+        'skip': 2
+    },
+
+    'shr3': {
         'skip': 3
     },
 
     'devtor': {
-        'skip': 3
+        'windicons': DEVTOR_ICONS,
+        'skip': 2
     },
+
+    'deviance': {
+        'levels': [0.7, 1, 1.25, 1.5, 1.75, 2, 2.25],
+        'linewidths': [1, 1, 2, 2, 3, 3, 3],
+        'colors': ['#ec904a', '#e94639', '#841f18', '#957cca', '#e951f5', 
+                   '#e951f5', '#e951f5', '#e951f5']
+    }
 }
 
 ##########################################################################################

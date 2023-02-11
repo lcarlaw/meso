@@ -181,67 +181,6 @@ def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
     plt.close(fig)
     return out
 
-def contourf_original(lon, lat, data, time_str, timerange_str, **kwargs):
-    """[DEPRECATED] Contour-filled plot using geojsoncontour.
-
-    Parameters:
-    -----------
-    lon : array_like
-        2-D array of longitudes. Must be same shape as data
-    lat : array_like
-        2-D array of latitudes. Must be same shape as data
-    data : array_like [N, M]
-        Values over which contour fill is drawn
-    time_str : string
-        Valid time for this plot. Included in the placefile title
-    timerange_str : string
-        Valid time range over which to display in GR
-    Other Parameters:
-    -----------------
-    levels : list, array
-        Number and positions of the contour lines / regions
-    colors : color string (hexademicals)
-        Colors corresponding to each contour-fill level
-    plotinfo : string
-        Brief description of the plot
-    Returns:
-    --------
-    out : list
-        List of strings, each corresponding to a new line for the placefile
-    """
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    levels = kwargs.get('fill_levels')
-    colors = kwargs.get('fill_colors')
-
-    plotinfo = kwargs.get('varname', 'None')
-    c = ax.contourf(lon, lat, data, levels, colors=colors)
-    geojson = json.loads(geojsoncontour.contourf_to_geojson(contourf=c, ndigits=15))
-
-    out = []
-    out.append('Title: %s Filled Contour | %s\n' % (plotinfo, time_str))
-    out.append('RefreshSeconds: 60\n')
-    out.append('TimeRange: %s\n' % (timerange_str))
-    for feature in geojson['features']:
-        rgb = hex2rgb(feature['properties']['fill'])
-        groups = feature['geometry']['coordinates']
-        for group in groups:
-            out.append('Polygon:\n')
-            first_line = True
-            for item in group[0]:
-                if first_line:
-                    COLOR ='%s, %s' % (', '.join(rgb), ALPHA)
-                else:
-                    COLOR = ''
-                out.append(' %s, %s, %s\n' % (item[1], item[0], COLOR))
-                first_line = False
-            out.append('End:\n')
-            out.append('\n')
-    plt.close(fig)
-    return out
-
 def write_placefile(arrs, realtime=False):
     """
     Main function controlling the plotting of GR2/Analyst-readable placefiles. Called
@@ -327,9 +266,14 @@ def write_placefile(arrs, realtime=False):
 
             # Barb plots
             elif plot_type == 'barb':
-                out = barbs(lon, lat, arr[parm+'_u'], arr[parm+'_v'], valid_str,
-                            timerange_str,
-                            **configs)
+
+                if parm not in ['devtor']:
+                    out = barbs(lon, lat, arr[parm+'_u'], arr[parm+'_v'], valid_str,
+                                timerange_str, **configs)
+                else:
+                    out = barbs_devtor(lon, lat, arr[parm+'_u'], arr[parm+'_v'],
+                                       arr['deviance'], valid_str, timerange_str,
+                                        **configs)
             else:
                 raise ValueError("%s is an invalid plot_type entry" % (plot_type))
             out_dict[parm].extend(out)
@@ -434,6 +378,7 @@ def barbs(lon, lat, U, V, time_str, timerange_str, **kwargs):
     for j in range(U.shape[0])[::skip]:
         for i in range(V.shape[1])[::skip]:
             wdir, wspd = winds.comp2vec(float(U[j,i]), float(V[j,i]))
+            wspd = np.clip(wspd, 2.5, 52) # For time being, limit max storm speed
             if wspd > 0:
                 wspd_rounded = 5 * round(wspd/5)
                 numref = int(wspd_rounded//5)
@@ -441,6 +386,82 @@ def barbs(lon, lat, U, V, time_str, timerange_str, **kwargs):
                 out.append('  Threshold: 999\n')
                 out.append('  Icon: 0,0,%s,1,%s,%s: %s\n' % (wdir, np.clip(numref,1,999),
                                                              plotinfo, round(wspd,1)))
+                out.append('End:\n\n')
+    return out
+
+def barbs_devtor(lon, lat, U, V, deviance, time_str, timerange_str, **kwargs):
+    """
+    Write out a wind barb placefile. This is an override to plot deviant tornado vectors
+    while color-coding based on the deviance scalar.
+
+    Parameters:
+    -----------
+    lon : array_like
+        2-D array of longitudes. Must be same shape as data
+    lat : array_like
+        2-D array of latitudes. Must be same shape as data
+    U : array_like
+        u-wind components
+    V : array_like
+        v-wind components
+    deviance : array_like
+        Relative deviance (scalar)
+    time_str : string
+        Valid time for this plot. Included in the placefile title
+    timerange_str : string
+        Valid time range over which to display in GR
+
+    Other Parameters:
+    -----------------
+    windicons : string
+        Path or url containing the wind icons referenced in this placefile
+    varname : string
+        Parameter information
+    skip : int
+        Number of wind barbs to skip in the i and j directions
+
+    Returns:
+    --------
+    out : list
+        List of strings, each corresponding to a new line for the placefile
+
+    """
+    iconfile = kwargs.get('windicons', 'Missing: Specify `DEVTOR_ICONS` in cofigs.py!')
+    plotinfo = kwargs.get('varname', 'None')
+    skip = kwargs.get('skip', 3)
+    out = []
+    out.append('Title: %s | %s\n' % (plotinfo, time_str))
+    out.append('RefreshSeconds: 60\n')
+    out.append('TimeRange: %s\n' % (timerange_str))
+    out.append('Color: 255 255 255\n')
+    out.append('IconFile: 1, 28, 28, 14, 14, "%s"\n' % (iconfile))
+    out.append('Font: 1, 10, 4, "Arial"\n\n')
+    for j in range(U.shape[0])[::skip]:
+        for i in range(V.shape[1])[::skip]:
+            wdir, wspd = winds.comp2vec(float(U[j,i]), float(V[j,i]))
+            wspd = np.clip(wspd, 2.5, 52)
+            if wspd > 2.5 and deviance[j,i] >= 0.7:
+                # Determine reference column based on deviant tornado motion speed. 
+                wspd_rounded = 5 * round(wspd/5)
+                column = int(wspd_rounded//5)
+
+                # ========================================================================
+                # Row and column lookup logic will need to change if the number of barbs
+                # in the DEVTOR_ICONS file change!
+                # ========================================================================
+                rounded_deviance = np.clip(round(deviance[j,i]*4) / 4, 0, 2)
+                row = (rounded_deviance//.25) - 3
+                row = np.clip(row, 0, 4)
+                numref = column + (row * 10)
+
+                out.append('Object: ' + str(lat[j,i]) + ',' + str(lon[j,i]) +'\n')
+                out.append('  Threshold: 999\n')
+
+                # Override the plotinfo string for the deviant tornado motion vectors.
+                # Add relative deviance and speed to the output text string.
+                info = f"Deviance: {round(deviance[j,i],2)} | Speed: {round(wspd,1)}"
+                infostring = f"{plotinfo}: {info}"
+                out.append(f"  Icon: 0,0,{wdir},1,{numref},{infostring}\n")
                 out.append('End:\n\n')
     return out
 

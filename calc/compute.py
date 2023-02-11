@@ -114,7 +114,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
             if 'lm5' in VECTORS:
                 d['lm5_u'][j,i], d['lm5_v'][j,i] = derived.lm5(prof)
             if 'devtor' in VECTORS:
-                d['devtor_u'][j,i], d['devtor_v'][j,i] = derived.devtor(prof)
+                devtor = derived.devtor(prof)
+                d['devtor_u'][j,i], d['devtor_v'][j,i], d['deviance'][j,i] = devtor
 
             # Special parameters: prohibitive to re-compute all of the inputs...
             if 'estp' in SCALARS: d['estp'][j,i] = derived.estp(d['mlcape'][j,i],

@@ -97,6 +97,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
                 d['lr03km'][j,i] = derived.lapse_rate(prof, lower=0, upper=3000)
             if 'mllcl' in SCALARS:
                 d['mllcl'][j,i] = mlpcl.lclhght
+            if 'snsq' in SCALARS:
+                d['snsq'][j,i] = derived.snsq(prof)
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:

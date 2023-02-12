@@ -15,7 +15,8 @@ SCALAR_PARAMS = {
     'lr03km': '0-3 km Lapse Rate (C/km)',
     'mllcl': 'Mixed-Layer LCL (m)',
     'nst': 'Non-Supercell Tornado Parameter',
-    'deviance': 'Perceived Tornado Deviance'
+    'deviance': 'Perceived Tornado Deviance',
+    'snsq': 'Snow Squall Parameter'
 }
 
 VECTOR_PARAMS = {
@@ -149,7 +150,15 @@ PLOTCONFIGS = {
         'linewidths': [1, 1, 2, 2, 3, 3, 3],
         'colors': ['#ec904a', '#e94639', '#841f18', '#957cca', '#e951f5', 
                    '#e951f5', '#e951f5', '#e951f5']
-    }
+    },
+
+    'snsq': {
+        'levels': [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6],
+        'linewidths': [0.5, 0.5, 1, 1, 2, 2, 2, 3, 3, 3],
+        'colors': ['#244e83', '#458ff7', '#50b0eb', '#6be8e9', '#8467c6', '#8835e2',
+                   '#7a1681', '#ea33f7', '#f3b0b9']
+    },
+
 }
 
 ##########################################################################################

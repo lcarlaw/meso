@@ -17,34 +17,38 @@ def snsq(prof):
     """
     Compute the Snow Squal Parameter
     """
-    pbot = interp.pres(prof, interp.to_msl(prof, 0.))
+    pbot = interp.pres(prof, interp.to_msl(prof, 2.))
     ptop = interp.pres(prof, interp.to_msl(prof, 2000.))
-
-    # 0-2 km mean RH
-    dp = -1
-    p = np.arange(pbot, ptop+dp, dp)
-    rh = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.relh[::-1])
-    mean_rh = utils.weighted_average(rh, p)
-    A = (mean_rh - 60.) / 15.
-
-    # 0-2 km theta-e delta
-    t1 = interp.generic_interp_pres(np.log10(pbot), prof.logp[::-1], prof.thetae[::-1])
-    t2 = interp.generic_interp_pres(np.log10(ptop), prof.logp[::-1], prof.thetae[::-1])
-    B = (4. - (t2 - t1)) / 4.
-
-    # 0-2 km mean wind speed (prof object stores in knots, not m/s)
-    C = winds.mean_wind(prof, pbot=pbot, ptop=ptop)
-    mean_windspd = np.sqrt(np.square(C[0]) + np.square(C[1]))
-    C = mean_windspd / 17.4946
 
     # 2m wetbulb temperature for masking 
     p2m = interp.pres(prof, interp.to_msl(prof, 2.))
     tw = interp.generic_interp_pres(np.log10(p2m), prof.logp[::-1], prof.wetbulb[::-1])
+
+    # Don't perform any calculations if wetbulb is too warm
+    snsq = 0. 
+    if tw <= 1:
+
+        # 0-2 km mean RH
+        dp = -1
+        p = np.arange(pbot, ptop+dp, dp)
+        rh = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.relh[::-1])
+        mean_rh = utils.weighted_average(rh, p)
+        A = (mean_rh - 60.) / 15.
+
+        # 0-2 km theta-e delta
+        t1 = interp.generic_interp_pres(np.log10(pbot), prof.logp[::-1], prof.thetae[::-1])
+        t2 = interp.generic_interp_pres(np.log10(ptop), prof.logp[::-1], prof.thetae[::-1])
+        B = (4. - (t2 - t1)) / 4.
+
+        # 0-2 km mean wind speed (prof object stores in knots, not m/s)
+        C = winds.mean_wind(prof, pbot=pbot, ptop=ptop)
+        mean_windspd = np.sqrt(np.square(C[0]) + np.square(C[1]))
+        C = mean_windspd / 17.4946    
+
+        if A >= 0 and B >= 0:
+            snsq = A * B * C
     
-    snsq = A * B * C
-    if mean_rh < 60. or tw > 1.:
-        snsq = np.nan
-    
+    # Seems like the snowsquall parameter is capped online. 
     snsq = np.clip(snsq, 0, 5.4)
     return snsq
 

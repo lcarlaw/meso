@@ -21,6 +21,8 @@ WIND_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/windi
 SHEAR1_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/master/output/shr1icons.png'
 DEVTOR_ICONS = 'https://raw.githubusercontent.com/lcarlaw/meso/deviant-motion/output/devtor.png'
 
+NUM_THREADS = 8     # Maximum number of threads for numba to use. 
+
 ##########################################################################################
 # Download configurations
 #

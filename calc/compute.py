@@ -2,12 +2,12 @@
 variables.
 """
 
-from numba import njit, prange
+from numba import njit, prange, set_num_threads
 from numba.typed import List, Dict
 from numba.core import types
 import numpy as np
 
-from configs import SIGMA
+from configs import NUM_THREADS
 from plotconfigs import SCALAR_PARAMS, VECTOR_PARAMS
 import sharptab.profile as profile
 import sharptab.params as params
@@ -97,6 +97,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
                 d['lr03km'][j,i] = derived.lapse_rate(prof, lower=0, upper=3000)
             if 'mllcl' in SCALARS:
                 d['mllcl'][j,i] = mlpcl.lclhght
+            if 'snsq' in SCALARS:
+                d['snsq'][j,i] = derived.snsq(prof)
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:
@@ -136,6 +138,7 @@ def sharppy_calcs(**kwargs):
     processing and prange.
 
     """
+    set_num_threads(NUM_THREADS)
 
     tmpc = kwargs.get('tmpc')
     dwpc = kwargs.get('dwpc')

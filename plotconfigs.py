@@ -166,7 +166,7 @@ PLOTCONFIGS = {
 # entries in the PLOTCONFIGS dictionary
 ##########################################################################################
 barbconfigs = {
-    'skip': 6,
+    'skip': 3,
     'windicons': WIND_ICONS,
 }
 

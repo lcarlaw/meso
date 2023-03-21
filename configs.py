@@ -32,7 +32,7 @@ NUM_THREADS = 8     # Maximum number of threads for numba to use.
 TIMEOUT = 200       # Seconds after which to timeout the data download function
 MAXSECONDS = 1800   # Number of seconds after which to abort data download in run.py
 MINSIZE = 5         # Grib files under this size (MB) will result in a download error
-SIGMA = 1.5         # For smoothing function. Larger = more smoothing, but amplitude loss
+SIGMA = 1.         # For smoothing function. Larger = more smoothing, but amplitude loss
 ALPHA = 50          # Alpha level for filled placefiles. 0 = transparent; 255 = opaque
 
 DATA_SOURCES = OrderedDict({
@@ -54,5 +54,8 @@ THREDDS_CONFIGS = {
 }
 
 vars = ':(HGT|TMP|SPFH|UGRD|VGRD|PRES):'
-#grid_info = 'lambert:262.5:38.5 -109:270:13545.000000 24.5:210:13545.000000'
-grid_info = 'lambert:262.5:38.5 -120:360:13545.000000 23:215:13545.000000'
+# 13-km CONUS
+#grid_info = 'lambert:262.5:38.5 -120:360:13545.000000 23:215:13545.000000'
+
+# 20-km CONUS
+grid_info = 'lambert:265:25 -120:245:20318.000000 23:150:20318.000000'

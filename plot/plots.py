@@ -440,7 +440,7 @@ def barbs_devtor(lon, lat, U, V, deviance, time_str, timerange_str, **kwargs):
         for i in range(V.shape[1])[::skip]:
             wdir, wspd = winds.comp2vec(float(U[j,i]), float(V[j,i]))
             wspd = np.clip(wspd, 2.5, 52)
-            if wspd > 2.5 and deviance[j,i] >= 0.7:
+            if wspd > 2.5 and deviance[j,i] >= 0.5:
                 # Determine reference column based on deviant tornado motion speed. 
                 wspd_rounded = 5 * round(wspd/5)
                 column = int(wspd_rounded//5)

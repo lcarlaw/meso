@@ -351,25 +351,26 @@ def parcelx(prof, flag, *args):
         pbot = pe2
         pcl.blayer = pbot
 
-    """
     # Calculate height of various temperature levels
-    p0c = temp_lvl(prof, 0.)
-    pm10c = temp_lvl(prof, -10.)
-    pm20c = temp_lvl(prof, -20.)
-    pm30c = temp_lvl(prof, -30.)
-    hgt0c = interp.hght(prof, p0c)
-    hgtm10c = interp.hght(prof, pm10c)
-    hgtm20c = interp.hght(prof, pm20c)
-    hgtm30c = interp.hght(prof, pm30c)
-    pcl.p0c = p0c
-    pcl.pm10c = pm10c
-    pcl.pm20c = pm20c
-    pcl.pm30c = pm30c
-    pcl.hght0c = hgt0c
-    pcl.hghtm10c = hgtm10c
-    pcl.hghtm20c = hgtm20c
-    pcl.hghtm30c = hgtm30c
-    """
+    #p0c = temp_lvl(prof, 0.)
+
+    #pm10c = temp_lvl(prof, -10.)
+    #pm20c = temp_lvl(prof, -20.)
+    #pm30c = temp_lvl(prof, -30.)
+    #hgt0c = interp.hght(prof, p0c)
+
+    #hgtm10c = interp.hght(prof, pm10c)
+    #hgtm20c = interp.hght(prof, pm20c)
+    #hgtm30c = interp.hght(prof, pm30c)
+    #pcl.p0c = p0c
+    #pcl.pm10c = pm10c
+    #pcl.pm20c = pm20c
+    #pcl.pm30c = pm30c
+    #pcl.hght0c = hgt0c
+
+    #pcl.hghtm10c = hgtm10c
+    #pcl.hghtm20c = hgtm20c
+    #pcl.hghtm30c = hgtm30c
 
     if pbot < prof.pres[-1]:
         # Check for the case where the LCL is above the
@@ -758,7 +759,8 @@ spec = [
     ("pbot", float64),
     ("ptop", float64),
     ("lplhght", float64),
-    ("b3km", float64)
+    ("b3km", float64),
+    #("hght0c", float64),
 ]
 
 @jitclass(spec)
@@ -791,32 +793,31 @@ class Parcel(object):
         self.lplhght = -99.0  # Lifted Parcel Height (m AGL)
         #self.bfzl = ma.masked # Parcel CAPE up to freezing level (J/kg)
         self.b3km = -99.0 # Parcel CAPE up to 3 km (J/kg)
-        """
-        self.b6km = ma.masked # Parcel CAPE up to 6 km (J/kg)
-        self.p0c = ma.masked # Pressure value at 0 C  (mb)
-        self.pm10c = ma.masked # Pressure value at -10 C (mb)
-        self.pm20c = ma.masked # Pressure value at -20 C (mb)
-        self.pm30c = ma.masked # Pressure value at -30 C (mb)
-        self.hght0c = ma.masked # Height value at 0 C (m AGL)
-        self.hghtm10c = ma.masked # Height value at -10 C (m AGL)
-        self.hghtm20c = ma.masked # Height value at -20 C (m AGL)
-        self.hghtm30c = ma.masked # Height value at -30 C (m AGL)
-        self.wm10c = ma.masked # w velocity at -10 C ?
-        self.wm20c = ma.masked # w velocity at -20 C ?
-        self.wm30c = ma.masked # Wet bulb at -30 C ?
-        self.li5 = ma.masked # Lifted Index at 500 mb (C)
-        self.li3 = ma.masked # Lifted Index at 300 mb (C)
-        self.brnshear = ma.masked # Bulk Richardson Number Shear
-        self.brnu = ma.masked # Bulk Richardson Number U (kts)
-        self.brnv = ma.masked # Bulk Richardson Number V (kts)
-        self.brn = ma.masked # Bulk Richardson Number (unitless)
-        self.limax = ma.masked # Maximum Lifted Index (C)
-        self.limaxpres = ma.masked # Pressure at Maximum Lifted Index (mb)
-        self.cap = ma.masked # Cap Strength (C)
-        self.cappres = ma.masked # Cap strength pressure (mb)
-        self.bmin = ma.masked # Buoyancy minimum in profile (C)
-        self.bminpres = ma.masked # Buoyancy minimum pressure (mb)
-        """
+        
+        #self.b6km = ma.masked # Parcel CAPE up to 6 km (J/kg)
+        #self.p0c = ma.masked # Pressure value at 0 C  (mb)
+        #self.pm10c = ma.masked # Pressure value at -10 C (mb)
+        #self.pm20c = ma.masked # Pressure value at -20 C (mb)
+        #self.pm30c = ma.masked # Pressure value at -30 C (mb)
+        #self.hght0c = -99.0 # Height value at 0 C (m AGL)
+        #self.hghtm10c = ma.masked # Height value at -10 C (m AGL)
+        #self.hghtm20c = ma.masked # Height value at -20 C (m AGL)
+        #self.hghtm30c = ma.masked # Height value at -30 C (m AGL)
+        #self.wm10c = ma.masked # w velocity at -10 C ?
+        #self.wm20c = ma.masked # w velocity at -20 C ?
+        #self.wm30c = ma.masked # Wet bulb at -30 C ?
+        #self.li5 = ma.masked # Lifted Index at 500 mb (C)
+        #self.li3 = ma.masked # Lifted Index at 300 mb (C)
+        #self.brnshear = ma.masked # Bulk Richardson Number Shear
+        #self.brnu = ma.masked # Bulk Richardson Number U (kts)
+        #self.brnv = ma.masked # Bulk Richardson Number V (kts)
+        #self.brn = ma.masked # Bulk Richardson Number (unitless)
+        #self.limax = ma.masked # Maximum Lifted Index (C)
+        #self.limaxpres = ma.masked # Pressure at Maximum Lifted Index (mb)
+        #self.cap = ma.masked # Cap Strength (C)
+        #self.cappres = ma.masked # Cap strength pressure (mb)
+        #self.bmin = ma.masked # Buoyancy minimum in profile (C)
+        #self.bminpres = ma.masked # Buoyancy minimum pressure (mb)
         # for kw in kwargs: setattr(self, kw, kwargs.get(kw))
 
 
@@ -1424,6 +1425,54 @@ def most_unstable_level(prof):
     ind = np.where(np.fabs(mt - np.nanmax(mt)) < TOL)[0]
     return p[ind[0]]
 
+@njit
+def temp_lvl(prof, temp, wetbulb=False):
+    '''
+        Calculates the level (hPa) of the first occurrence of the specified
+        temperature.
+        Parameters
+        ----------
+        prof : profile object
+            Profile Object
+        temp : number
+            Temperature being searched (C)
+        wetbulb : boolean
+            Flag to indicate whether or not the wetbulb profile should be used instead
+        Returns
+        -------
+        First Level of the temperature (hPa) : number
+        '''
+    if wetbulb is False:
+        profile = prof.tmpc
+    else:
+        profile = prof.wetbulb
+
+    difft = profile - temp
+
+    if not np.any(difft <= 0) or not np.any(difft >= 0):
+        # Temp doesn't occur anywhere; return masked
+        return -9999.
+    elif np.any(difft == 0):
+        # Temp is one of the data points; don't bother interpolating
+        out = prof.pres[difft == 0][0]
+        return out
+
+    #mask = np.logical_or(difft.mask, prof.logp.mask)
+
+    #difft = difft[~mask]
+    #profile = profile[~mask]
+    logp = prof.logp
+
+    # Find where subsequent values of difft are of opposite sign (i.e. when multiplied together, the result is negative)
+    ind = np.where((difft[:-1] * difft[1:]) < 0)[0]
+    ind = ind.min()
+    #try:
+    #    ind = ind.min()
+    #except:
+    #    ind = ind1[-1]
+
+    return np.power(10, np.interp(temp, [profile[ind+1], profile[ind]],
+                            [logp[ind+1], logp[ind]]))
 
 @njit
 def stp_cin(mlcape, esrh, ebwd, mllcl, mlcinh):

@@ -13,6 +13,14 @@ import sharptab.params as params
 from calc.vector import transform
 
 @njit
+def hail_parms(prof, mupcl):
+    p0c = params.temp_lvl(prof, 0.)
+    hght0c = interp.hght(prof, p0c)
+    print(mupcl.lfchght, mupcl.elhght, hght0c)
+
+    return p0c, hght0c
+
+@njit
 def snsq(prof):
     """
     Compute the Snow Squal Parameter

@@ -78,6 +78,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
             eff_inflow = params.effective_inflow_layer(prof)
             mupcl = params.parcelx(prof, flag=3)
 
+            hail = derived.hail_parms(prof, mupcl)            
+            
             # Scalars
             if 'esrh' in SCALARS:
                 d['esrh'][j,i] = derived.srh(prof, effective_inflow_layer=eff_inflow)

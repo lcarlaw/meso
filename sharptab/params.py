@@ -1457,8 +1457,9 @@ def temp_lvl(prof, temp, wetbulb=False):
         out = prof.pres[difft == 0][0]
         return out
 
+    # logical_or throwing errors with numba. Assuming no masked data since we'll be using
+    # model data for all of this. 
     #mask = np.logical_or(difft.mask, prof.logp.mask)
-
     #difft = difft[~mask]
     #profile = profile[~mask]
     logp = prof.logp

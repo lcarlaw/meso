@@ -14,16 +14,18 @@ from calc.vector import transform
 
 @njit
 def hail_parms(prof, mupcl):
-    p0c = params.temp_lvl(prof, 0.)
-    hght0c = interp.hght(prof, p0c)
-    print(mupcl.lfchght, mupcl.elhght, hght0c)
-
-    return p0c, hght0c
+    """
+    Compute additional hail parameters for Nixon, Kumjian, and Fowle research.
+    """
+    hght0c = interp.hght(prof, params.temp_lvl(prof, 0.))
+    el_lfc_diff = mupcl.elhght - mupcl.lfchght
+    fzl_lfc_diff = hght0c - mupcl.lfchght
+    return mupcl.elhght, el_lfc_diff, fzl_lfc_diff
 
 @njit
 def snsq(prof):
     """
-    Compute the Snow Squal Parameter
+    Compute the Snow Squall Parameter
     """
     pbot = interp.pres(prof, interp.to_msl(prof, 2.))
     ptop = interp.pres(prof, interp.to_msl(prof, 2000.))

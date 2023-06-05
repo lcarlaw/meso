@@ -18,7 +18,7 @@ SCALAR_PARAMS = {
     'deviance': 'Perceived Tornado Deviance',
     'snsq': 'Snow Squall Parameter',
     'fzl-lfc-diff': 'Freezing Level - MU LFC thickness (m)',
-    'el-lfc-diff': 'MU Parcel EL - MU parcel LFC thickness (m)',
+    'el-lfc-diff': 'MU Parcel EL - LFC thickness (m)',
     'mu-el': 'MU Parcel Equilibrium Level (m)',
 }
 

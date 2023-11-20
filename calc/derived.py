@@ -13,9 +13,25 @@ import sharptab.params as params
 from calc.vector import transform
 
 @njit
+def hail_parms(prof, mupcl):
+    """
+    Compute additional hail parameters for Nixon, Kumjian, and Fowle research.
+    """
+    hght0c = interp.hght(prof, params.temp_lvl(prof, 0.))
+
+    # mupcl.lfchght is -99 if undef. Deal with negative values here. 
+    if mupcl.lfchght > 0:
+        el_lfc_diff = mupcl.elhght - mupcl.lfchght
+        fzl_lfc_diff = hght0c - mupcl.lfchght
+    else:
+        el_lfc_diff = -99.
+        fzl_lfc_diff = -99.
+    return mupcl.elhght, el_lfc_diff, fzl_lfc_diff
+
+@njit
 def snsq(prof):
     """
-    Compute the Snow Squal Parameter
+    Compute the Snow Squall Parameter
     """
     pbot = interp.pres(prof, interp.to_msl(prof, 2.))
     ptop = interp.pres(prof, interp.to_msl(prof, 2000.))

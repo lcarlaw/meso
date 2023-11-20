@@ -60,7 +60,6 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
         key_type=types.unicode_type,
         value_type=float_array,
     )
-
     for scalar in SCALARS:
         d[scalar] = np.zeros((tmpc.shape[1], tmpc.shape[2]), dtype='float64')
     for vector in VECTORS:
@@ -76,9 +75,13 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
             # Compile the big jitted methods. This will slow down the very 1st iteration.
             mlpcl = params.parcelx(prof, flag=4)
             eff_inflow = params.effective_inflow_layer(prof)
-            mupcl = params.parcelx(prof, flag=3)
-
+            mupcl = params.parcelx(prof, flag=3)    
+            
             # Scalars
+            if ('fzl-lfc-diff' in SCALARS) and ('el-lfc-diff' in SCALARS) and \
+                ('mu-el' in SCALARS):
+                hail = derived.hail_parms(prof, mupcl) 
+                d['mu-el'][j,i], d['el-lfc-diff'][j,i], d['fzl-lfc-diff'][j,i] = hail 
             if 'esrh' in SCALARS:
                 d['esrh'][j,i] = derived.srh(prof, effective_inflow_layer=eff_inflow)
             if 'mucape' in SCALARS:

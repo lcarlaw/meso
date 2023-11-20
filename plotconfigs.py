@@ -16,7 +16,10 @@ SCALAR_PARAMS = {
     'mllcl': 'Mixed-Layer LCL (m)',
     'nst': 'Non-Supercell Tornado Parameter',
     'deviance': 'Perceived Tornado Deviance',
-    'snsq': 'Snow Squall Parameter'
+    'snsq': 'Snow Squall Parameter',
+    'fzl-lfc-diff': 'Freezing Level - MU LFC thickness (m)',
+    'el-lfc-diff': 'MU Parcel EL - LFC thickness (m)',
+    'mu-el': 'MU Parcel Equilibrium Level (m)',
 }
 
 VECTOR_PARAMS = {
@@ -128,6 +131,26 @@ PLOTCONFIGS = {
         'linewidths': [1, 2, 3, 3, 3, 3, 3]
     },
 
+    # Hail parameters testing
+    'fzl-lfc-diff': {
+        'levels': [1000, 2000, 3000, 5000, 7000, 9000],
+        'colors': ['#000000'],
+        'linewidths': [2, 1, 1, 1, 1, 1, 1, 1]
+    },
+
+    'el-lfc-diff': {
+        'levels': [5000, 6000, 7000, 8000, 9000, 10000],
+        'colors': ['#000000'],
+        'linewidths': [1, 1, 1, 2, 2, 2]
+    },
+
+    'mu-el': {
+        'levels': [9000, 10000, 11000, 12000, 13000, 14000, 15000],
+        'colors': ['#000000'],
+        'linewidths': [1, 1, 2, 2, 2, 3, 3]
+    },
+
+    # Vectors/barbs
     'rm5': {
         'skip': 2
     },

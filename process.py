@@ -42,6 +42,7 @@ def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                               arr['wspd'][:,idx[0][0], idx[0][1]])
         hodo_data = {}
         heights = arr['hght'][:,idx[0][0], idx[0][1]] / 1000.
+        heights = np.subtract(heights, heights[0])
         mask = np.where(heights < 12)
         hodo_data['hght'] = heights[mask]
         hodo_data['uwnd'] = u[mask]

@@ -213,7 +213,7 @@ def lm5(prof):
     p6km = interp.pres(prof, interp.to_msl(prof, 6000.))
     mean_u, mean_v = winds.mean_wind(prof, pbot=sfc,ptop=p6km)
 
-    temp = transform(blkshr_u, blkshr_v, 0., 7.5*MS2KTS, -7.5*MS2KTS, 0.)
+    temp = transform(blkshr_u, blkshr_v, 0., 5.0*MS2KTS, -5.0*MS2KTS, 0.)
     BlkMag = np.hypot(blkshr_u, blkshr_v)
 
     u = mean_u - (temp[0]/BlkMag)

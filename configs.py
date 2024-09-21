@@ -8,7 +8,7 @@ from collections import OrderedDict
 #
 # OUTPUT_DIR, MODEL_DIR, and LOG_DIR are used by run.py to automate scripting.
 ##########################################################################################
-PYTHON = '/Users/leecarlaw/anaconda3/envs/meso/bin/python'
+PYTHON = '/Users/leecarlaw/mambaforge/envs/meso-py312/bin/python'
 WGRIB2 = '/usr/local/bin/wgrib2'
 WGET = '/usr/local/bin/wget'
 

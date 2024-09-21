@@ -88,6 +88,7 @@ dependencies:
   - pytz=2024.2
   - readline=8.2
   - requests=2.31.0
+  - schedule=1.2.2
   - scipy=1.12.0
   - setuptools=74.1.2
   - six=1.16.0

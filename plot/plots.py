@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import geojsoncontour
-import json
 import os
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -53,9 +51,18 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    levels = kwargs.get('levels')
-    colors = kwargs.get('colors')
+    levels = list(kwargs.get('levels'))
+    colors = list(kwargs.get('colors'))
     plotinfo = kwargs.get('varname', 'None')
+    linewidths = kwargs.get('linewidths')
+    try:
+        linewidths = list(linewidths)
+    except TypeError: 
+        linewidths = [linewidths]
+    
+    # Extend linewidths to match the length of the levels. 
+    diff = len(levels) - len(colors)
+    if diff > 0: linewidths.extend([linewidths[-1]] * diff)
 
     if levels is not None and colors is not None:
         c = None
@@ -63,7 +70,7 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
             c = ax.contour(lon, lat, data, levels, colors=colors)
     else:
         c = ax.contour(lon, lat, data)
-
+    
     out = []
     out.append('Title: %s | %s\n' % (plotinfo, time_str))
     out.append('RefreshSeconds: 60\n')
@@ -72,48 +79,43 @@ def contour(lon, lat, data, time_str, timerange_str, **kwargs):
 
     # Max of data array is greater than minimum contour threshold
     if c is not None:
-        geojson = json.loads(geojsoncontour.contour_to_geojson(contour=c, ndigits=2))
+        segments = c.allsegs
+        # Get the full range of colors from the collections object 
+        collections = c.collections 
+        colors = [rgba_to_rgb_255(i.get_edgecolor()[0][:3]) for i in collections]
+        # Each contour level 
+        for i, contour_level in enumerate(segments):
+            level = levels[i] 
+            color = colors[i] 
 
-        #clabs = defaultdict(list) # Store contour labels
-        for feature in geojson['features']:
-            clabs = defaultdict(list) # Store contour labels
-            coords = feature['geometry']['coordinates']
-            level = '%s' % (round(feature['properties']['level-value'], 1))
-            idx = feature['properties']['level-index']
-            if int(levels[idx]) == int(float(level)):
-                try:
-                    lws = list(kwargs['linewidths'])
-                    linewidth = lws[idx]
-                except:
-                    linewidth = kwargs['linewidths']
-            else:
-                linewidth = 1
+            # Each area
+            for element in contour_level: 
+                if len(element) > 0:
+                    clabs = defaultdict(list)
+                    out.append(f'Color: {color[0]} {color[1]} {color[2]} 255\n')
+                    out.append(f'Line: {linewidths[i]}, 0, "{plotinfo}: {level}"\n')
+                    
+                    knt = 0
+                    for coord in element: 
+                        out.append(f' {coord[1]}, {coord[0]}\n')
+                        if knt % 30 == 0: clabs[levels[i]].append([coord[1], coord[0]])
+                        knt += 1
+                    out.append('End:\n\n')
 
-            rgb = hex2rgb(feature['properties']['stroke'])
-            out.append('Color: %s 255\n' % (' '.join(rgb)))
-            out.append('Line: %s, 0, "%s: %s"\n' % (linewidth, plotinfo, level))
-
-            KNT = 0
-            for coord in coords:
-                out.append(' %s, %s\n' % (coord[1], coord[0]))
-                if KNT % 30 == 0: clabs[level].append([coord[1], coord[0]])
-                KNT += 1
-            out.append('End:\n\n')
-
-            # Contour labels
-            for lev in clabs.keys():
-                for val in clabs[lev]:
-                    if float(lev) >= 9: lev = int(float(lev))
-                    out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
-            out.append('\n')
-
-        plt.close(fig)
-
+                    for lev in clabs.keys():
+                        for val in clabs[lev]:
+                            if float(lev) >= 9: lev = int(float(lev))
+                            out.append('Text: %s, %s, 1, "%s", ""\n' % (val[0], val[1], lev))
+                            out.append(f'Text: {val[0]}, {val[1]}, 1, {lev}, ""\n')
+                    out.append('\n')
+    
+    # Close the plotting figure
+    plt.close(fig)
+    
     # No contour values found. Would otherwise result in a
     # UserWarning: No contour levels were found within the data range
     #else:
     #    out = ["\n"]
-
     return out
 
 def contourf(lon, lat, data, time_str, timerange_str, **kwargs):
@@ -464,6 +466,9 @@ def barbs_devtor(lon, lat, U, V, deviance, time_str, timerange_str, **kwargs):
                 out.append(f"  Icon: 0,0,{wdir},1,{numref},{infostring}\n")
                 out.append('End:\n\n')
     return out
+
+def rgba_to_rgb_255(rgba):
+    return tuple(int(rgba[i] * 255) for i in range(3))
 
 def hex2rgb(hex):
     """Convert hexadecimal string to rgb tuple

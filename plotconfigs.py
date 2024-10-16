@@ -20,6 +20,7 @@ SCALAR_PARAMS = {
     'fzl-lfc-diff': 'Freezing Level - MU LFC thickness (m)',
     'el-lfc-diff': 'MU Parcel EL - LFC thickness (m)',
     'mu-el': 'MU Parcel Equilibrium Level (m)',
+    'dcape': 'Downdraft CAPE (J/kg)',
 }
 
 VECTOR_PARAMS = {
@@ -182,6 +183,13 @@ PLOTCONFIGS = {
                    '#7a1681', '#ea33f7', '#f3b0b9']
     },
 
+    'dcape': {
+        'levels': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 3000, 4000, 5000],
+        'colors': ['#d2a663', '#d2a663', '#d2a663', '#df6641', '#90322b', '#90322b', '#90322b',
+                   '#90322b', '#90322b', '#90322b', '#90322b', '#90322b', '#90322b', '#90322b'],
+        'linewidths': [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    },
+
 }
 
 ##########################################################################################
@@ -244,4 +252,8 @@ FILTER_SPECS = {
         'mucape': ['>', 100],
         'ebwd': ['>', 20],
     },
+
+    'dcape': {
+        'mucape': ['>', 1]
+    }
 }

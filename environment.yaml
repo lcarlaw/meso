@@ -1,7 +1,6 @@
 name: meso-py312
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - blosc=1.21.6
   - brotli=1.1.0

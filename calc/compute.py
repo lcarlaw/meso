@@ -102,6 +102,8 @@ def worker(pres, tmpc, hght, dwpc, wspd, wdir, vort, SCALARS, VECTORS):
                 d['mllcl'][j,i] = mlpcl.lclhght
             if 'snsq' in SCALARS:
                 d['snsq'][j,i] = derived.snsq(prof)
+            if 'dcape' in SCALARS:
+                d['dcape'][j,i] = derived.dcape(prof) 
 
             # Vectors: returned as (u, v) tuples
             if 'ebwd' in VECTORS:

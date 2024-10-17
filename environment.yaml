@@ -9,6 +9,7 @@ dependencies:
   - bzip2=1.0.8
   - c-ares=1.33.1
   - ca-certificates=2024.8.30
+  - cartopy=0.24.0
   - certifi=2024.8.30
   - cffi=1.17.1
   - charset-normalizer=3.3.2
@@ -17,6 +18,7 @@ dependencies:
   - eccodes=2.37.0
   - fonttools=4.53.1
   - freetype=2.12.1
+  - geos=3.13.0
   - h2=4.1.0
   - hdf4=4.2.15
   - hdf5=1.14.3
@@ -80,6 +82,7 @@ dependencies:
   - pygrib=2.1.5
   - pyparsing=3.1.4
   - pyproj=3.6.1
+  - pyshp=2.3.1
   - pysocks=1.7.1
   - python=3.12.5
   - python-dateutil=2.9.0
@@ -90,6 +93,7 @@ dependencies:
   - schedule=1.2.2
   - scipy=1.12.0
   - setuptools=74.1.2
+  - shapely=2.0.6
   - six=1.16.0
   - snappy=1.2.1
   - sqlite=3.46.1
@@ -106,3 +110,4 @@ dependencies:
   - zstd=1.5.6
   - pip:
       - timeout-decorator==0.5.0
+prefix: /Users/leecarlaw/mambaforge/envs/meso-py312

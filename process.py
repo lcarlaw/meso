@@ -23,13 +23,15 @@ log = logfile('process')
 
 def import_for_testing(testfile):
     import pickle
-    with open(testfile, 'rb') as datafile:
+    import lzma
+    with lzma.open('standard.xz', 'rb') as datafile:
         return pickle.load(datafile)
 
 def export_for_testing(testfile, data):
     import pickle
-    with open(testfile, 'wb') as f:
-        pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+    import lzma
+    with lzma.open(testfile, 'wb') as f:
+        pickle.dump(data, f)
 
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):
@@ -87,8 +89,8 @@ def create_placefiles(data, realtime=False):
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
 
-    #export_for_testing('tests/sharppy.pickle', plot_arrays)
-    #export_for_testing('tests/standard.pickle', prof_data)
+    #export_for_testing('tests/sharppy.xz', plot_arrays)
+    #export_for_testing('tests/standard.xz', prof_data)
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)

@@ -12,6 +12,7 @@ winter_tests.py
 test_filtering.py
 test.py
 test.txt
+tests/*.png
 placefile_tests.py
 placefile_requests/
 .vscode/

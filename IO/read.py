@@ -77,7 +77,7 @@ def read_data(filename):
         native = True
         level_type = 'hybrid'
         temperatures = grb.select(name='Temperature', typeOfLevel=level_type)
-        heights = grb.select(name='Geopotential Height', typeOfLevel=level_type)
+        heights = grb.select(name='Geopotential height', typeOfLevel=level_type)
         pressure = grb.select(name='Pressure', typeOfLevel=level_type)
         specific_humidity = grb.select(name='Specific humidity', typeOfLevel=level_type)
 
@@ -87,7 +87,7 @@ def read_data(filename):
     elif temperatures.typeOfLevel == 'isobaricInhPa':
         native = False
         level_type = 'isobaricInhPa'
-        heights = grb.select(name='Geopotential Height', typeOfLevel=level_type)
+        heights = grb.select(name='Geopotential height', typeOfLevel=level_type)
         psfc = grb.select(name='Surface pressure')[0].values
         t2m = grb.select(name='2 metre temperature')[0].values
         u10m = grb.select(name='10 metre U wind component')[0].values

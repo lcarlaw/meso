@@ -2,9 +2,8 @@ import os, sys
 import argparse
 import numpy as np
 from glob import glob
-from datetime import datetime, timedelta
-from time import time
-import re
+from datetime import datetime, timedelta, timezone
+import pytz
 
 import calc.compute as compute
 import calc.filtering as filtering
@@ -17,7 +16,6 @@ from plot.hodographs import parse_vector, compute_parameters, plot_hodograph
 from configs import MODEL_DIR
 
 import IO.read as read
-from utils.cmd import execute
 from utils.logs import logfile
 
 script_path = os.path.dirname(os.path.realpath(__file__))
@@ -25,13 +23,15 @@ log = logfile('process')
 
 def import_for_testing(testfile):
     import pickle
-    with open(testfile, 'rb') as datafile:
+    import lzma
+    with lzma.open('standard.xz', 'rb') as datafile:
         return pickle.load(datafile)
 
 def export_for_testing(testfile, data):
     import pickle
-    with open(testfile, 'wb') as f:
-        pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+    import lzma
+    with lzma.open(testfile, 'wb') as f:
+        pickle.dump(data, f)
 
 def create_hodograph(data, point, storm_motion='right-mover', sfc_wind=None,
                      storm_relative=False):
@@ -89,8 +89,8 @@ def create_placefiles(data, realtime=False):
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
 
-    #export_for_testing('tests/sharppy.pickle', plot_arrays)
-    #export_for_testing('tests/standard.pickle', prof_data)
+    #export_for_testing('tests/sharppy.xz', plot_arrays)
+    #export_for_testing('tests/standard.xz', prof_data)
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)
@@ -119,7 +119,7 @@ def parse_logic(args):
     timestr_fmt = '%Y-%m-%d/%H'
     dt_end = None
     if args.realtime:
-        dt_start = datetime.utcnow() - timedelta(minutes=52)
+        dt_start = datetime.now(timezone.utc) - timedelta(minutes=52)
     else:
         if args.time_str is not None:
             dt_start = datetime.strptime(args.time_str, timestr_fmt)
@@ -128,9 +128,12 @@ def parse_logic(args):
             dt_start = dt_start - timedelta(hours=1)
             dt_end = datetime.strptime(args.end_time, timestr_fmt)
             dt_end = dt_end - timedelta(hours=1)
+            dt_end = dt_end.replace(tzinfo=pytz.UTC)
         else:
             log.error("Missing one of -rt, -t, or -start/-end flags")
             sys.exit(1)
+
+    dt_start = dt_start.replace(tzinfo=pytz.UTC)
 
     if args.hodo is None and args.meso is None:
         log.error("Missing one of -hodo, -meso")

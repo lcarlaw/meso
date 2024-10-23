@@ -44,8 +44,6 @@ dependencies:
   - libev=4.33
   - libexpat=2.6.3
   - libffi=3.4.2
-  - libgfortran=5.0.0
-  - libgfortran5=13.2.0
   - libiconv=1.17
   - libjpeg-turbo=3.0.0
   - liblapack=3.9.0

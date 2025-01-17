@@ -86,8 +86,8 @@ def plot_tests(data, lons, lats):
     varlist = ['esrh', 'estp', 'mucape', 'mlcape', 'mlcin', 'cape3km', 'lr03km', 
                'srh01km', 'nst']
     for var in varlist:
-        plot_data = gaussian_filter(data[var], sigma=1, mode='nearest')
-        c = ax.contour(lons, lats, plot_data, transform=data_crs,
+        #plot_data = gaussian_filter(data[var], sigma=1, mode='nearest')
+        c = ax.contour(lons, lats, data[var], transform=data_crs,
                        levels=cfg[var]['levels'], colors=cfg[var]['colors'], 
                        linewidths=cfg[var]['linewidths'])
         ax.clabel(c, c.levels, inline=True, fontsize=10)
@@ -101,9 +101,9 @@ def plot_tests(data, lons, lats):
 
 if __name__ == '__main__':
     set_num_threads(8)
-    with lzma.open('./tests/standard.xz', 'rb') as f: data = pickle.load(f)
+    with lzma.open('./tests/sharppy.xz', 'rb') as f: data = pickle.load(f)
 
-    results = cache_funcs(data)
-    plot_tests(results, data['lons'], data['lats'])
+    #results = cache_funcs(data)
+    plot_tests(data[0], data[0]['lons'], data[0]['lats'])
 
     

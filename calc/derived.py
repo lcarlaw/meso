@@ -67,7 +67,9 @@ def snsq(prof):
     
     # Seems like the snowsquall parameter is capped online. 
     snsq = np.clip(snsq, 0, 5.4)
-    return snsq
+    sfc_tw = (1.8 * tw) + 32. 
+
+    return snsq, sfc_tw
 
 @njit
 def nst(cape3km, mlcin, vort, prof):
@@ -319,3 +321,32 @@ def dcape(prof):
     #drtemp = tp2 # Downrush temp in Celsius
 
     return tote
+
+##########################################################################################
+# Winter parameters
+##########################################################################################
+@njit
+def dgz(prof):
+    # Should we use wetbulb here instead of air temp? Since SPC uses the later, stick with 
+    # air temp for now, but something to consider. 
+    p_bottom = params.temp_lvl(prof, -12, wetbulb=False)
+    p_top = params.temp_lvl(prof, -17, wetbulb=False)
+    height_bot = interp.hght(prof, p_bottom)
+    height_top = interp.hght(prof, p_top)
+    depth = height_top - height_bot
+
+    dp = -1
+    p = np.arange(p_bottom, p_top+dp, dp)
+    rh = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.relh[::-1])
+    omega = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.omeg[::-1])
+    mean_rh = utils.weighted_average(rh, p)
+    mean_omega = utils.weighted_average(omega, p) * 10 # to microbars/s (<0 is upwards)
+    dwpt = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.dwpc[::-1])
+    w = thermo.mixratio(p, dwpt)
+    pwat = (((w[:-1]*w[1:])/2 * (p[:-1]-p[1:])) * 0.00040173).sum()
+    oprh = -1 * mean_omega * pwat * (mean_rh/100.)
+
+    #if mean_rh < 70:
+    #    depth = -99
+    #    mean_omega = -99
+    return depth, mean_omega, oprh

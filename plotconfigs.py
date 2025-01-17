@@ -21,6 +21,15 @@ SCALAR_PARAMS = {
     'el-lfc-diff': 'MU Parcel EL - LFC thickness (m)',
     'mu-el': 'MU Parcel Equilibrium Level (m)',
     'dcape': 'Downdraft CAPE (J/kg)',
+
+    # Winter parameters
+    'sfctw': 'Surface Wetbulb Temperature (F)', # auto-generated during snsq step
+    'dgzdepth': 'Dendritic Growth Layer Depth (m)',
+    'dgzomega': 'Dendritic Growth Layer Omega (-microbars/sec)',
+    'oprh': 'DGZ Omega, RH, and PWAT',
+    #'925fgen': '925 mb frontogenesis (K/100 km/3 hr)',
+    #'850fgen': '850 mb frontogenesis (K/100 km/3 hr)',
+    #'700fgen': '700 mb frontogenesis (K/100 km/3 hr)',
 }
 
 VECTOR_PARAMS = {
@@ -176,18 +185,44 @@ PLOTCONFIGS = {
                    '#e951f5', '#e951f5', '#e951f5']
     },
 
+    'dcape': {
+        'levels': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 3000, 4000, 5000],
+        'colors': ['#d2a663', '#d2a663', '#d2a663', '#df6641', '#90322b', '#90322b', '#90322b',
+                   '#90322b', '#90322b', '#90322b', '#90322b', '#90322b', '#90322b', '#90322b'],
+        'linewidths': [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    },
+
+    # Winter parameters
     'snsq': {
         'levels': [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6],
         'linewidths': [0.5, 0.5, 1, 1, 2, 2, 2, 3, 3, 3],
         'colors': ['#244e83', '#458ff7', '#50b0eb', '#6be8e9', '#8467c6', '#8835e2',
                    '#7a1681', '#ea33f7', '#f3b0b9']
     },
+    
+    'sfctw': {
+        'levels': [26, 28, 30, 32, 34, 36, 38],
+        'colors': ['#5fa3f6', '#5fa3f6', '#5fa3f6', '#9956ec', '#ed5f54', '#ed5f54', 
+                   '#ed5f54', '#ed5f54'],
+        'linewidths': [1, 1, 1, 2, 1, 1, 1],
+    }, 
 
-    'dcape': {
-        'levels': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 3000, 4000, 5000],
-        'colors': ['#d2a663', '#d2a663', '#d2a663', '#df6641', '#90322b', '#90322b', '#90322b',
-                   '#90322b', '#90322b', '#90322b', '#90322b', '#90322b', '#90322b', '#90322b'],
-        'linewidths': [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    'dgzdepth': {
+        'levels': [800, 900, 1000, 1200, 1400, 1600, 1800, 2000],
+        'colors': ['#9956ec'],
+        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2],
+    },
+
+    'dgzomega': {
+        'levels': [1, 3, 5, 7, 9],
+        'colors': ['#9956ec'],
+        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2],
+    },
+
+    'oprh': {
+        'levels': [-1, -0.5],
+        'colors': ['#9956ec'],
+        'linewidths': [2, 1],
     },
 
 }

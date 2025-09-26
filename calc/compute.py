@@ -16,6 +16,8 @@ from sharptab.constants import KTS2MS
 from calc import derived
 from utils.timing import timeit
 
+import metpy.calc as mpcalc
+
 float_array = types.float64[:,:] # No type expressions allowed in jitted functions
 @timeit
 @njit(parallel=True, cache=True)
@@ -181,6 +183,12 @@ def sharppy_calcs(**kwargs):
     # Convert list of dictionary keys to numba typed list.
     ret = worker(pres, tmpc, hght, dwpc, wspd, wdir, vvel, vort, List(SCALAR_PARAMS.keys()),
                  List(VECTOR_PARAMS.keys()))
+
+    if 'dgzdepth' in SCALAR_PARAMS:
+        dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats)
+        ret['850fgen'] = derived.frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=850)
+        ret['700fgen'] = derived.frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=700)
+        ret['925fgen'] = derived.frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=925)
 
     # Converison back to a 'normal' Python dictionary
     output = {}

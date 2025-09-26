@@ -27,9 +27,9 @@ SCALAR_PARAMS = {
     'dgzdepth': 'Dendritic Growth Layer Depth (m)',
     'dgzomega': 'Dendritic Growth Layer Omega (-microbars/sec)',
     'oprh': 'DGZ Omega, RH, and PWAT',
-    #'925fgen': '925 mb frontogenesis (K/100 km/3 hr)',
-    #'850fgen': '850 mb frontogenesis (K/100 km/3 hr)',
-    #'700fgen': '700 mb frontogenesis (K/100 km/3 hr)',
+    '925fgen': '925 mb frontogenesis (K/100 km/3 hr)',
+    '850fgen': '850 mb frontogenesis (K/100 km/3 hr)',
+    '700fgen': '700 mb frontogenesis (K/100 km/3 hr)',
 }
 
 VECTOR_PARAMS = {
@@ -214,9 +214,9 @@ PLOTCONFIGS = {
     },
 
     'dgzomega': {
-        'levels': [1, 3, 5, 7, 9],
+        'levels': [-20, -18, -16, -14, -12, -10, -8, -6, -4, -2, -1],
         'colors': ['#9956ec'],
-        'linewidths': [1, 1, 2, 2, 2, 2, 2, 2],
+        'linewidths': [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1],
     },
 
     'oprh': {
@@ -224,6 +224,24 @@ PLOTCONFIGS = {
         'colors': ['#9956ec'],
         'linewidths': [2, 1],
     },
+
+    '925fgen': {
+        'levels': [1, 2, 3, 4, 6, 8, 10],
+        'colors': ['#9956ec'],
+        'linewidths': [2],
+    },
+
+    '850fgen': {
+        'levels': [1, 2, 3, 4, 6, 8, 10],
+        'colors': ['#9956ec'],
+        'linewidths': [2],
+    },
+
+    '700fgen': {
+        'levels': [1, 2, 3, 4, 6, 8, 10],
+        'colors': ['#9956ec'],
+        'linewidths': [2],
+    }
 
 }
 

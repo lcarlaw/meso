@@ -13,6 +13,10 @@ import sharptab.params as params
 import sharptab.thermo as thermo
 from calc.vector import transform
 
+import metpy.calc as mpcalc
+from metpy.units import units
+from metpy.interpolate import interpolate_to_isosurface
+
 @njit
 def hail_parms(prof, mupcl):
     """
@@ -338,15 +342,32 @@ def dgz(prof):
     dp = -1
     p = np.arange(p_bottom, p_top+dp, dp)
     rh = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.relh[::-1])
-    omega = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.omeg[::-1])
+    # to microbars/s (<0 is upwards)
+    omega = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.omeg[::-1]) * 10
     mean_rh = utils.weighted_average(rh, p)
-    mean_omega = utils.weighted_average(omega, p) * 10 # to microbars/s (<0 is upwards)
+    mean_omega = utils.weighted_average(omega, p)
     dwpt = interp.generic_interp_pres(np.log10(p), prof.logp[::-1], prof.dwpc[::-1])
     w = thermo.mixratio(p, dwpt)
     pwat = (((w[:-1]*w[1:])/2 * (p[:-1]-p[1:])) * 0.00040173).sum()
-    oprh = -1 * mean_omega * pwat * (mean_rh/100.)
+    oprh = mean_omega * pwat * (mean_rh/100.)
 
-    #if mean_rh < 70:
-    #    depth = -99
-    #    mean_omega = -99
     return depth, mean_omega, oprh
+
+def frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=850):
+    tmpc = tmpc * units.degC
+    pres = pres * units.hPa
+    wspd = (wspd * KTS2MS) * units('m/s')
+    wdir = wdir * units.degrees
+    level = level * units.hPa
+
+    temperature = interpolate_to_isosurface(pres, tmpc, level)
+    theta = mpcalc.potential_temperature(level, temperature)
+
+    u, v = mpcalc.wind_components(wspd, wdir)
+    u_lev = interpolate_to_isosurface(pres, u, level)
+    v_lev = interpolate_to_isosurface(pres, v, level)
+
+    # Convert from K / m / s to K / 100km / 3hr
+    fgen = mpcalc.frontogenesis(theta, u_lev, v_lev, dx, dy) * 1080000000
+    return fgen.magnitude
+

@@ -16,13 +16,13 @@ SCALAR_PARAMS = {
     'mllcl': 'Mixed-Layer LCL (m)',
     'nst': 'Non-Supercell Tornado Parameter',
     'deviance': 'Perceived Tornado Deviance',
-    'snsq': 'Snow Squall Parameter',
     'fzl-lfc-diff': 'Freezing Level - MU LFC thickness (m)',
     'el-lfc-diff': 'MU Parcel EL - LFC thickness (m)',
     'mu-el': 'MU Parcel Equilibrium Level (m)',
     'dcape': 'Downdraft CAPE (J/kg)',
 
     # Winter parameters
+    'snsq': 'Snow Squall Parameter',
     'sfctw': 'Surface Wetbulb Temperature (F)', # auto-generated during snsq step
     'dgzdepth': 'Dendritic Growth Layer Depth (m)',
     'dgzomega': 'Dendritic Growth Layer Omega (-microbars/sec)',
@@ -228,19 +228,19 @@ PLOTCONFIGS = {
     '925fgen': {
         'levels': [1, 2, 3, 4, 6, 8, 10],
         'colors': ['#9956ec'],
-        'linewidths': [2],
+        'linewidths': [1.5],
     },
 
     '850fgen': {
         'levels': [1, 2, 3, 4, 6, 8, 10],
         'colors': ['#9956ec'],
-        'linewidths': [2],
+        'linewidths': [1.5],
     },
 
     '700fgen': {
         'levels': [1, 2, 3, 4, 6, 8, 10],
         'colors': ['#9956ec'],
-        'linewidths': [2],
+        'linewidths': [1.5],
     }
 
 }

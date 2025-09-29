@@ -63,15 +63,19 @@ BUNDLES = {
 # Specifying either the `fill_levels` or `fill_colors` keywords will cause a separate
 # contour-filled placefile to be output. These will have `_cf` appended to the filename.
 ##########################################################################################
+
+# Configurations for isobaric temperature plots
 temperature_levels = [-40, -38, -36, -34, -32, -30, -28, -26, -24, -22, -20, -18, -16, -14,
                       -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 temperature_cols = ['#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8',
                     '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8',
                     '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', 
-                    '#4595f8', '#4595f8', '#4595f8', '#ba352d', '#ba352d', '#ba352d', 
-                    '#ba352d', '#ba352d', '#ba352d', '#ba352d', '#ba352d', '#ba352d',
-                    '#ba352d', '#ba352d']
+                    '#4595f8', '#4595f8', '#4595f8', '#ed6257', '#ed6257', '#ed6257', 
+                    '#ed6257', '#ed6257', '#ed6257', '#ed6257', '#ed6257', '#ed6257',
+                    '#ed6257', '#ed6257']
+idx = temperature_levels.index(0)
 temperature_lws = [1] * len(temperature_cols)
+temperature_lws[idx] = 2
 
 PLOTCONFIGS = {
     'mllcl': {
@@ -301,6 +305,10 @@ contourconfigs = {
 # Filtering specifications
 ##########################################################################################
 FILTER_SPECS = {
+    'oprh':{
+        'sfctw': ['<', 40]
+    },
+
     'mlcin': {
         'mlcape': ['>', 5],
     },

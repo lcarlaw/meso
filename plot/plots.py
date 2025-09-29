@@ -5,6 +5,10 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import logging as log
 
+import cartopy.crs as ccrs
+from cartopy.mpl.contour import GeoContourSet
+import cartopy.feature as cfeature
+
 import sharptab.winds as winds
 from configs import ALPHA, OUTPUT_DIR
 from plotconfigs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, PLOTCONFIGS, barbconfigs,
@@ -12,6 +16,58 @@ from plotconfigs import (SCALAR_PARAMS, VECTOR_PARAMS, BUNDLES, PLOTCONFIGS, bar
 
 PARAMS = {**SCALAR_PARAMS, **VECTOR_PARAMS}
 if not os.path.exists(OUTPUT_DIR): os.makedirs(OUTPUT_DIR)
+
+def create_map_output(data, lons, lats, plot_dir='./tests'):
+    """
+    Plots parameters on a map. Should be turned off in process.py for operational runs. 
+    """
+    def _plot_background(ax,):
+        ax.set_extent([-120, -74, 25, 47.5])
+        ax.coastlines(resolution='50m', color='blue', linewidths=1.2)
+        ax.add_feature(cfeature.BORDERS, linewidths=1.2, edgecolor='black')
+        land_mask = cfeature.NaturalEarthFeature('physical', 'land', '50m',
+                                                edgecolor='face',
+                                                facecolor=cfeature.COLORS['land'])
+        sea_mask = cfeature.NaturalEarthFeature('physical', 'ocean', '50m',
+                                                edgecolor='face',
+                                                facecolor=cfeature.COLORS['water'])
+        lake_mask = cfeature.NaturalEarthFeature('physical', 'lakes', '50m',
+                                                edgecolor='face',
+                                                facecolor=cfeature.COLORS['water'])
+        #ax.add_feature(USCOUNTIES.with_scale('5m'), linewidth=0.5, edgecolor='#563d22')
+        ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.5)
+        ax.add_feature(cfeature.STATES.with_scale('10m'), linewidth=1.2, edgecolor='k')
+        ax.add_feature(cfeature.BORDERS, linewidth=0.5)
+        ax.add_feature(sea_mask, zorder=0)
+        ax.add_feature(land_mask, zorder=0)
+        ax.add_feature(lake_mask, zorder=0)
+        return ax
+
+    data_crs = ccrs.PlateCarree()
+    crs = ccrs.LambertConformal(central_longitude=-99, central_latitude=35.0, 
+                                standard_parallels=[35.])
+    _, ax = plt.subplots(nrows=1, ncols=1, figsize=(18, 12), dpi=200, 
+                           subplot_kw={'projection': crs})
+    plt.subplots_adjust(wspace=0, hspace=0)
+    _plot_background(ax)
+    ax.set_adjustable('datalim')
+
+    varlist = ['esrh', 'estp', 'mucape', 'mlcape', 'mlcin', 'cape3km', 'lr03km', 
+               'srh01km', 'nst', 'oprh', '925fgen', '850fgen', '700fgen', 'snsq', 
+               'dgzomega', 'dgzdepth', 'sfctw']
+    for var in varlist:
+        c = ax.contour(lons, lats, data[var], transform=data_crs,
+                       levels=PLOTCONFIGS[var]['levels'], colors=PLOTCONFIGS[var]['colors'], 
+                       linewidths=PLOTCONFIGS[var]['linewidths'])
+        ax.clabel(c, c.levels, inline=True, fontsize=10)
+        plt.savefig(f'{plot_dir}/{var}.png', bbox_inches='tight')
+
+        for collection in ax.collections: 
+            if isinstance(collection, GeoContourSet):
+                collection.remove()
+    
+    plt.close()
+
 
 def contour(lon, lat, data, time_str, timerange_str, **kwargs):
     """

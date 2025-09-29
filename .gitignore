@@ -13,6 +13,7 @@ test_filtering.py
 test.py
 test.txt
 tests/*.png
+tests/reference_data/*.png
 placefile_tests.py
 placefile_requests/
 .vscode/

@@ -54,7 +54,7 @@ def create_map_output(data, lons, lats, plot_dir='./tests'):
 
     varlist = ['esrh', 'estp', 'mucape', 'mlcape', 'mlcin', 'cape3km', 'lr03km', 
                'srh01km', 'nst', 'oprh', '925fgen', '850fgen', '700fgen', 'snsq', 
-               'dgzomega', 'dgzdepth', 'sfctw']
+               'dgzomega', 'dgzdepth', 'sfctw', '925T', '850T', '700T']
     for var in varlist:
         c = ax.contour(lons, lats, data[var], transform=data_crs,
                        levels=PLOTCONFIGS[var]['levels'], colors=PLOTCONFIGS[var]['colors'], 

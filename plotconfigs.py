@@ -28,8 +28,11 @@ SCALAR_PARAMS = {
     'dgzomega': 'Dendritic Growth Layer Omega (-microbars/sec)',
     'oprh': 'DGZ Omega, RH, and PWAT',
     '925fgen': '925 mb frontogenesis (K/100 km/3 hr)',
+    '925T': '925 mb temperature (C)',
     '850fgen': '850 mb frontogenesis (K/100 km/3 hr)',
+    '850T': '850 mb temperature (C)',
     '700fgen': '700 mb frontogenesis (K/100 km/3 hr)',
+    '700T': '700 mb temperature (C)',
 }
 
 VECTOR_PARAMS = {
@@ -48,6 +51,9 @@ BUNDLES = {
     'ML CAPE-CIN': ['mlcin_cf', 'mlcin', 'mlcape'],
 #    'bundle_1': ['cape3km', 'shr3'],
 #    'low-level-lapse-rates': ['lr03km', 'lr03km_cf']
+    '925 MB': ['925T', '925fgen'],
+    '850 MB': ['850T', '850fgen'],
+    '700 MB': ['700T', '700fgen'],
 }
 
 ##########################################################################################
@@ -57,6 +63,16 @@ BUNDLES = {
 # Specifying either the `fill_levels` or `fill_colors` keywords will cause a separate
 # contour-filled placefile to be output. These will have `_cf` appended to the filename.
 ##########################################################################################
+temperature_levels = [-40, -38, -36, -34, -32, -30, -28, -26, -24, -22, -20, -18, -16, -14,
+                      -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+temperature_cols = ['#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8',
+                    '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8',
+                    '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', '#4595f8', 
+                    '#4595f8', '#4595f8', '#4595f8', '#ba352d', '#ba352d', '#ba352d', 
+                    '#ba352d', '#ba352d', '#ba352d', '#ba352d', '#ba352d', '#ba352d',
+                    '#ba352d', '#ba352d']
+temperature_lws = [1] * len(temperature_cols)
+
 PLOTCONFIGS = {
     'mllcl': {
         'colors': ['#438a2d','#438a2d','#71d054','#71d054','#000000','#000000','#000000',
@@ -227,21 +243,39 @@ PLOTCONFIGS = {
 
     '925fgen': {
         'levels': [1, 2, 3, 4, 6, 8, 10],
-        'colors': ['#e94639'],
-        'linewidths': [1.5],
+        'colors': ['#7a1681'],
+        'linewidths': [1],
     },
 
     '850fgen': {
         'levels': [1, 2, 3, 4, 6, 8, 10],
         'colors': ['#7a1681'],
-        'linewidths': [1.5],
+        'linewidths': [1],
     },
 
     '700fgen': {
         'levels': [1, 2, 3, 4, 6, 8, 10],
-        'colors': ['#6be8e9'],
-        'linewidths': [1.5],
-    }
+        'colors': ['#7a1681'],
+        'linewidths': [1],
+    },
+
+    '925T': {
+        'levels': temperature_levels,
+        'colors': temperature_cols,
+        'linewidths': temperature_lws
+    },
+
+    '850T': {
+        'levels': temperature_levels,
+        'colors': temperature_cols,
+        'linewidths': temperature_lws
+    },
+
+    '700T': {
+        'levels': temperature_levels,
+        'colors': temperature_cols,
+        'linewidths': temperature_lws
+    },
 
 }
 

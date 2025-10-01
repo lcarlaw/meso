@@ -369,5 +369,6 @@ def frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=850):
 
     # Convert from K / m / s to K / 100km / 3hr
     fgen = mpcalc.frontogenesis(theta, u_lev, v_lev, dx, dy) * 1080000000
+    fgen = np.nan_to_num(fgen) # Added to avoid "holes" in data with nans
     return fgen.magnitude, temperature.magnitude
 

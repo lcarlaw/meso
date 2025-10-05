@@ -158,7 +158,7 @@ PLOTCONFIGS = {
         'colors': ['#ee8c40', '#ee8c40', '#ea4b3f', '#ea4b3f', '#ea4b3f', '#e848f5',
                    '#e848f5'],
         'levels': [0.5, 1, 2, 3, 4, 5, 6],
-        'linewidths': [1, 2, 3, 3, 3, 3, 3]
+        'linewidths': [1, 2, 2, 2, 2, 3, 3]
     },
 
     # Hail parameters testing
@@ -215,7 +215,7 @@ PLOTCONFIGS = {
     # Winter parameters
     'snsq': {
         'levels': [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6],
-        'linewidths': [0.5, 0.5, 1, 1, 2, 2, 2, 3, 3, 3],
+        'linewidths': [1, 1, 1, 1, 1, 1, 1, 2, 2, 2],
         'colors': ['#244e83', '#458ff7', '#50b0eb', '#6be8e9', '#8467c6', '#8835e2',
                    '#7a1681', '#ea33f7', '#f3b0b9']
     },

@@ -186,9 +186,9 @@ def sharppy_calcs(**kwargs):
 
     if '925fgen' in SCALAR_PARAMS:
         dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats)
-        ret['850fgen'], ret['850T'] = derived.frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=850)
-        ret['700fgen'], ret['700T'] = derived.frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=700)
-        ret['925fgen'], ret['925T'] = derived.frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=925)
+        ret['850fgen'], ret['850T'] = derived.frontogenesis(tmpc, dwpc, pres, wspd, wdir, dx, dy, level=850)
+        ret['700fgen'], ret['700T'] = derived.frontogenesis(tmpc, dwpc, pres, wspd, wdir, dx, dy, level=700)
+        ret['925fgen'], ret['925T'] = derived.frontogenesis(tmpc, dwpc, pres, wspd, wdir, dx, dy, level=925)
 
     # Converison back to a 'normal' Python dictionary
     output = {}

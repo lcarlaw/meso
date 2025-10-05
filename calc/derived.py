@@ -6,6 +6,7 @@ from numba import njit
 import numpy as np
 
 from sharptab.constants import MS2KTS, KTS2MS
+from metpy.constants import Rd, g
 import sharptab.interp as interp
 import sharptab.winds as winds
 import sharptab.utils as utils
@@ -351,16 +352,23 @@ def dgz(prof):
     pwat = (((w[:-1]*w[1:])/2 * (p[:-1]-p[1:])) * 0.00040173).sum()
     oprh = mean_omega * pwat * (mean_rh/100.)
 
+    # Mask out values where RH is less than 60%
+    depth = np.where(mean_rh > 60, depth, 0)
+    mean_omega = np.where(mean_rh > 60, mean_omega, 0)
+    oprh = np.where(mean_rh > 60, oprh, 0)
+
     return depth, mean_omega, oprh
 
-def frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=850):
+def frontogenesis(tmpc, dwpc, pres, wspd, wdir, dx, dy, level=850):
     tmpc = tmpc * units.degC
+    dwpc = dwpc * units.degC
     pres = pres * units.hPa
     wspd = (wspd * KTS2MS) * units('m/s')
     wdir = wdir * units.degrees
     level = level * units.hPa
 
-    temperature = interpolate_to_isosurface(pres, tmpc, level)
+    #temperature = interpolate_to_isosurface(pres, tmpc, level)
+    temperature = extrapolate_to_isobaric(tmpc, dwpc, pres, level)
     theta = mpcalc.potential_temperature(level, temperature)
 
     u, v = mpcalc.wind_components(wspd, wdir)
@@ -372,3 +380,31 @@ def frontogenesis(tmpc, pres, wspd, wdir, dx, dy, level=850):
     fgen = np.nan_to_num(fgen) # Added to avoid "holes" in data with nans
     return fgen.magnitude, temperature.magnitude
 
+def extrapolate_to_isobaric(tmpc, dwpc, pres, p_target):
+    """
+    Places temperature data onto a specified isobaric surface, extrapolating values that 
+    are below the ground via the hypsometric equation and the surface virtual temperature, 
+    and interpolating values above the ground. 
+    """
+
+    t_plev = interpolate_to_isosurface(pres, tmpc, p_target)
+    p0 = pres[0, :, :]
+    below_ground_mask = p_target > p0 
+    #t0 = np.mean(tmpc[0:3, :,:], axis=0)
+    #td0 = np.mean(dwpc[0:3, :,:], axis=0)
+    t0 = tmpc[0, :, :]
+    td0 = dwpc[0, :, :]
+    tv0 = mpcalc.virtual_temperature_from_dewpoint(p0, t0, td0)
+    
+    L = 6.5 * units('kelvin / kilometer')
+    H = (Rd * tv0 / g).to('meter')
+    
+    # Height difference using hydrostatic relation
+    delta_z = H * np.log(p0 / (p_target))
+    
+    # Apply lapse-rate-based extrapolation
+    t_extrap = t0.to('K') - (L * delta_z.to('kilometer'))
+    
+    # Fill in the extrapolated values
+    t_plev[below_ground_mask] = t_extrap[below_ground_mask].to('degC')
+    return t_plev

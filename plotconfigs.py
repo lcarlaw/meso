@@ -309,6 +309,14 @@ FILTER_SPECS = {
         'sfctw': ['<', 40]
     },
 
+    'dgzomega':{
+        'sfctw': ['<', 40]
+    },
+    
+    'dgzdepth':{
+        'sfctw': ['<', 40]
+    },
+
     'mlcin': {
         'mlcape': ['>', 5],
     },

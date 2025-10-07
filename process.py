@@ -11,7 +11,7 @@ import sharptab.interp as interp
 import sharptab.winds as winds
 from utils.timing import timeit
 
-from plot.plots import write_placefile, create_map_output
+from plot.plots import write_placefile
 from plot.hodographs import parse_vector, compute_parameters, plot_hodograph
 from configs import MODEL_DIR
 
@@ -90,7 +90,6 @@ def create_placefiles(data, realtime=False):
 
     #export_for_testing('tests/sharppy.xz', plot_arrays)
     #export_for_testing('tests/standard.xz', prof_data)
-    #create_map_output(plot_arrays[0], plot_arrays[0]['lons'], plot_arrays[0]['lats'])
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)

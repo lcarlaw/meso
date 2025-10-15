@@ -24,9 +24,13 @@ SCALAR_PARAMS = {
     # Winter parameters
     'snsq': 'Snow Squall Parameter',
     'sfctw': 'Surface Wetbulb Temperature (F)', # auto-generated during snsq step
+
+    # dgzdepth, dgzomega, and oprh are masked if the mean RH in the DGZ is < 60%. 
+    # Additionally masked if the surface tw is >= 40 F (see below).
     'dgzdepth': 'Dendritic Growth Layer Depth (m)',
     'dgzomega': 'Dendritic Growth Layer Omega (-microbars/sec)',
     'oprh': 'DGZ Omega, RH, and PWAT',
+    
     '925fgen': '925 mb frontogenesis (K/100 km/3 hr)',
     '925T': '925 mb temperature (C)',
     '850fgen': '850 mb frontogenesis (K/100 km/3 hr)',

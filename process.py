@@ -88,8 +88,8 @@ def create_placefiles(data, realtime=False):
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
 
-    #export_for_testing('tests/sharppy.xz', plot_arrays)
-    #export_for_testing('tests/standard.xz', prof_data)
+    #export_for_testing('../tmp/tests/sharppy.xz', plot_arrays)
+    #export_for_testing('../tmp/tests/standard.xz', prof_data)
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)

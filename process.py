@@ -72,10 +72,9 @@ def create_placefiles(data, realtime=False):
     plot_arrays = []
     for i in range(len(data)):
         arr = data[i]
-        prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'],
-                     'dwpc':arr['dwpc'], 'hght':arr['hght'],
-                     'wdir':arr['wdir'], 'wspd':arr['wspd'],
-                     'lons':arr['lons'], 'lats':arr['lats']}
+        prof_data = {'pres':arr['pres'], 'tmpc':arr['tmpc'], 'dwpc':arr['dwpc'], 
+                     'hght':arr['hght'], 'wdir':arr['wdir'], 'wspd':arr['wspd'], 
+                     'vvel':arr['vvel'], 'lons':arr['lons'], 'lats':arr['lats']}
         plot_arrays.append(compute.sharppy_calcs(**prof_data))
 
     # Add the model run metadata
@@ -89,8 +88,8 @@ def create_placefiles(data, realtime=False):
     log.info("Entering filtering code")
     plot_arrays = filtering.filter(plot_arrays)
 
-    #export_for_testing('tests/sharppy.xz', plot_arrays)
-    #export_for_testing('tests/standard.xz', prof_data)
+    #export_for_testing('../tmp/tests/sharppy.xz', plot_arrays)
+    #export_for_testing('../tmp/tests/standard.xz', prof_data)
 
     # Writing to placefiles
     write_placefile(plot_arrays, realtime=realtime)

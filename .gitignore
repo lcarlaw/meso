@@ -16,3 +16,7 @@ tests/*.png
 placefile_tests.py
 placefile_requests/
 .vscode/
+
+tests/isobaric_interpolation/ 
+tests/reference_data/
+tests/test_output.py

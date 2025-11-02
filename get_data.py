@@ -9,8 +9,9 @@ from multiprocessing import Pool, freeze_support
 import numpy as np
 import timeout_decorator
 
-from configs import (WGRIB2, WGET, TIMEOUT, MINSIZE, MODEL_DIR, DATA_SOURCES,
-                     GOOGLE_CONFIGS, THREDDS_CONFIGS, vars, grid_info)
+from configs import WGRIB2, WGET, TIMEOUT, MINSIZE, MODEL_DIR
+from dataconfigs import (DATA_SOURCES, GOOGLE_CONFIGS, THREDDS_CONFIGS, data_vars, 
+                         grid_info)
 from utils.cmd import execute
 from utils.logs import logfile
 
@@ -115,14 +116,14 @@ def execute_download(full_name, url):
     arg2 = None
     if 'storage.googleapis.com' in url:
         arg1 = '%s -O %s %s' % (WGET, full_name, url)
-        arg2 = "%s %s -s | egrep '%s' | %s -i %s -grib %s.tmp" % (WGRIB2, full_name, vars,
+        arg2 = "%s %s -s | egrep '%s' | %s -i %s -grib %s.tmp" % (WGRIB2, full_name, data_vars,
                                                                   WGRIB2, full_name,
                                                                   full_name)
     elif 'ncei' in url:
         arg1 = '%s -O %s %s' % (WGET, full_name, url)
     else:
         arg1 = "%s/IO/get_inv.pl %s.idx | egrep '%s' | %s/IO/get_grib.pl %s %s" % (
-                script_path, url, vars, script_path, url, full_name
+                script_path, url, data_vars, script_path, url, full_name
                 )
 
     # Download data if not on the current filesystem
